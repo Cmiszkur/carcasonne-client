@@ -31,6 +31,16 @@
               "src/assets"
             ],
             "styles": [
+              {
+                "input": "src/dark-theme.sass",
+                "bundleName": "dark-theme",
+                "inject": false
+              },
+              {
+                "input": "src/light-theme.sass",
+                "bundleName": "light-theme",
+                "inject": false
+              },
               "src/styles.sass"
             ],
             "scripts": []

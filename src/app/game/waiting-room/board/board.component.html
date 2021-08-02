@@ -1,0 +1,9 @@
+<div *ngIf="tiles" class="tiles" id="tiles-area">
+  <app-tile *ngFor="let tile of tiles; let last = last"
+            [tile]="tile"
+            (ImageLoaded)="last ? onImageLoad() : null">
+  </app-tile>
+  <app-tile [tile]="tiles[0]"
+            [isDraggable]="true">
+  </app-tile>
+</div>

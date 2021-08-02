@@ -1,0 +1,14 @@
+<ng-container *ngIf="!isDraggable">
+  <div *ngIf="tile" [ngClass]="'tile'" [id]="tile._id">
+    <img [src]="getImageSource(tile.tileType)" [alt]="tile.tileType" (load)="onImageLoad()">
+  </div>
+</ng-container>
+
+<ng-container *ngIf="isDraggable">
+  <div [ngClass]="'tile'" [id]="tile._id"
+       *ngIf="tile"
+       cdkDragBoundary="#tiles-area"
+       cdkDrag>
+    <img [src]="getImageSource(tile.tileType)" [alt]="tile.tileType" (load)="onImageLoad()">
+  </div>
+</ng-container>
