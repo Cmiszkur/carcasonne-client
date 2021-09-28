@@ -7,16 +7,16 @@ import { Tile } from "../models/Tile";
 @Component({
   selector: 'app-waiting-room',
   templateUrl: './playing-room.component.html',
-  styleUrls: ['./playing-room.component.sass'],
+  styleUrls: [ './playing-room.component.sass' ],
 })
 export class PlayingRoomComponent implements OnInit {
-  private newRoom: Room | null;
   public player: Player | null;
   public username: string | null;
   public color: string | null;
   public numberOfFollowers: number | null;
   public arrayToIterate: Array<number>;
   public tiles: Tile[] | null;
+  private newRoom: Room | null;
 
   constructor(private roomService: RoomService, private router: Router) {
     // this.newRoom = history.state.room || null;
@@ -36,8 +36,8 @@ export class PlayingRoomComponent implements OnInit {
             isFollowerPlaced: false,
             tileType: 'road_top_bottom_town_right',
             tileValues: {
-              cities: [['RIGHT']],
-              roads: [['TOP', 'BOTTOM']],
+              cities: [ [ 'RIGHT' ] ],
+              roads: [ [ 'TOP', 'BOTTOM' ] ],
             },
             extraPoints: false,
             hasChurch: true,
@@ -49,12 +49,18 @@ export class PlayingRoomComponent implements OnInit {
             isFollowerPlaced: false,
             tileType: 'road_top_bottom_town_right',
             tileValues: {
-              cities: [['RIGHT']],
-              roads: [['TOP', 'BOTTOM']],
+              cities: [ [ 'RIGHT' ] ],
+              roads: [ [ 'TOP', 'BOTTOM' ] ],
             },
             extraPoints: false,
             hasChurch: true,
-            positionRef: { referenceTile: '610b9de4e2694343a04ee090', position: 'LEFT'},
+            positionRef: {
+              referenceTile: '610b9de4e2694343a04ee090', position: 'LEFT',
+              coordinates: {
+                x: -1,
+                y: 0
+              }
+            },
           },
           {
             _id: '61fdsfds694343a04ee090',
@@ -62,12 +68,20 @@ export class PlayingRoomComponent implements OnInit {
             isFollowerPlaced: false,
             tileType: 'road_top_bottom_town_right',
             tileValues: {
-              cities: [['RIGHT']],
-              roads: [['TOP', 'BOTTOM']],
+              cities: [ [ 'RIGHT' ] ],
+              roads: [ [ 'TOP', 'BOTTOM' ] ],
             },
             extraPoints: false,
             hasChurch: true,
-            positionRef: { referenceTile: '610b9de4e2694343a04ee090', position: 'TOP' },
+            positionRef:
+              {
+                referenceTile: '610b9de4e2694343a04ee090',
+                position: 'TOP',
+                coordinates: {
+                  x: 0,
+                  y: 1
+                }
+              },
           },
         ],
       },
@@ -88,7 +102,8 @@ export class PlayingRoomComponent implements OnInit {
     this.tiles = this.newRoom.board?.tiles || null;
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+  }
 
   findPlayer() {
     if (this.newRoom) {

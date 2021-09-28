@@ -14,5 +14,19 @@ export interface Tile {
     cities?: Array<string>[];
     roads?: Array<string>[];
   };
-  positionRef: { referenceTile: string; position: string } | null;
+  positionRef: {
+    referenceTile: string;
+    position: string;
+    coordinates: {
+      x: number,
+      y: number
+    }
+  } | null;
+}
+
+export interface TileEnvironments {
+  top: string,
+  right: string,
+  bottom: string,
+  left: string
 }

@@ -11,6 +11,8 @@ import { DashboardComponent } from './waiting-room/dashboard/dashboard.component
 import { StartingRoomComponent } from './starting-room/starting-room.component';
 import { TileComponent } from './waiting-room/board/tile/tile.component';
 import { DragDropModule } from "@angular/cdk/drag-drop";
+import { EmptyTileComponent } from './waiting-room/board/empty-tile/empty-tile.component';
+import { EmptyTileClickDirective } from './waiting-room/directives/empty-tile-click.directive';
 
 @NgModule({
   declarations: [
@@ -20,6 +22,8 @@ import { DragDropModule } from "@angular/cdk/drag-drop";
     DashboardComponent,
     StartingRoomComponent,
     TileComponent,
+    EmptyTileComponent,
+    EmptyTileClickDirective,
   ],
   imports: [ CommonModule, GameRoutingModule, MatButtonModule, MatIconModule, DragDropModule ],
 })
