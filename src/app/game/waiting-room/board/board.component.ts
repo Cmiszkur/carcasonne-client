@@ -1,4 +1,4 @@
-import { AfterViewChecked, Component, Inject, Input } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, Inject, Input, OnInit } from '@angular/core';
 import { Tile, TileEnvironments } from "../../models/Tile";
 import { DomElementsService } from "../../../dom-elements.service";
 import { DOCUMENT, KeyValue } from "@angular/common";
@@ -9,51 +9,40 @@ import { Coordinates, Emptytile } from "../../models/emptytile";
   templateUrl: './board.component.html',
   styleUrls: [ './board.component.sass' ]
 })
-export class BoardComponent implements AfterViewChecked {
+export class BoardComponent implements OnInit {
 
   @Input() public tiles: Tile[] | null;
-  public tilesAreaWidth: number | null;
-  public tilesAreaHeight: number | null;
   public emptyTiles: Map<string, Emptytile>;
   public translateValueCurrentTile: string;
-  private tilesMatrix: Array<[ Tile | undefined ]>
   private tilesCoordinates: Set<string>;
   private firstTilePosition: Coordinates;
 
-  constructor(private dom: DomElementsService,
-              @Inject(DOCUMENT) private document: Document) {
+  constructor(private el: ElementRef, private cdf: ChangeDetectorRef) {
     this.tiles = null;
-    this.tilesAreaWidth = null;
-    this.tilesAreaHeight = null;
-    this.tilesMatrix = [];
     this.tilesCoordinates = new Set<string>();
     this.emptyTiles = new Map<string, Emptytile>();
     this.firstTilePosition = {} as Coordinates;
     this.translateValueCurrentTile = ''
   }
 
-  ngAfterViewChecked() {
-    this.tilesAreaWidth = this.dom.getTilesAreaWidth();
-    this.tilesAreaHeight = this.dom.getTilesAreaHeight();
-  }
-
-  public onImageLoad(): void {
-    this.positionTilesOnBoard();
+  ngOnInit(): void {
+      console.log(this.tiles);
+      this.tiles?.forEach(tile => {
+        this.placeEmptyTileInMap(tile.tileValues, tile.rotation, tile.positionRef?.coordinates)
+      })
+    console.log(this.emptyTiles);
   }
 
   public emptyTileSelected(clickedEmptyTile: KeyValue<string, Emptytile>): void {
-    console.log(clickedEmptyTile)
     const coordinates = JSON.parse(clickedEmptyTile.key) as Coordinates
     this.translateValueCurrentTile = this.makeTranslateString(coordinates)
-    // this.checkCurrentTilePlacement(clickedEmptyTile.value)
-    console.log(this.checkCurrentTilePlacement(clickedEmptyTile.value))
+    this.checkCurrentTilePlacement(clickedEmptyTile.value)
   }
 
   private checkCurrentTilePlacement(clickedEmptyTile: Emptytile): boolean {
     if(this.tiles) {
       // TODO: Narazie jako układany kafalek jest używany pierwszy kafelek z tablicy, w przyszłości zmienić na kafelek zwracany z API
       const currentTileEnvironments = this.tileValuesToTileEnvironments(this.tiles[0].tileValues, this.tiles[0].rotation)
-      console.log(currentTileEnvironments)
       let checker: boolean = true
       for(const [key, value] of Object.entries(clickedEmptyTile)) {
         switch (key) {
@@ -79,244 +68,31 @@ export class BoardComponent implements AfterViewChecked {
 
   }
 
-  private createMatrix(tile: Tile) {
-    if (!tile.positionRef) {
-      this.tilesMatrix = [ [ tile ] ];
+  public placeTilesFromBackendOnBoard2(tile: Tile): void{
+
+  }
+
+  public placeTilesFromBackendOnBoard(tile: Tile): string {
+
+    const hostWidth = this.el.nativeElement.offsetWidth
+    const hostHeight = this.el.nativeElement.offsetHeight
+
+    if(!tile.positionRef) {
+
+      this.tilesCoordinates.add(JSON.stringify({ x: 0, y: 0 }))
+      this.firstTilePosition = { x: (hostWidth / 2) - 56, y: (hostHeight / 2) - 56 }
+
+      return `translate(${this.firstTilePosition.x}px, ${this.firstTilePosition.y}px`
     } else {
-      const referencedTileId = tile.positionRef.referenceTile;
-      let matrixRowIndex = 0;
-      let matrixColumnIndex = 0;
-      this.tilesMatrix.forEach((row, rowIndex) => {
-        if (row.findIndex(tileInMatrix => tileInMatrix?._id === referencedTileId) !== -1) {
-          matrixRowIndex = rowIndex;
-          matrixColumnIndex = row.findIndex(tileInMatrix => tileInMatrix?._id === referencedTileId);
-          const referenceTileRotation = this.tiles?.find(tile => tile._id === referencedTileId)?.rotation;
-          const placeRight = () => {
-            this.tilesMatrix[matrixRowIndex][matrixColumnIndex + 1] = tile;
-          };
-          const placeLeft = () => {
-            if (matrixColumnIndex === 0) {
-              this.tilesMatrix[matrixRowIndex].unshift(tile);
-              this.tilesMatrix.forEach((tilesRow, row, array) => {
-                row === matrixRowIndex ? null : tilesRow.unshift(undefined);
-              })
-            } else {
-              this.tilesMatrix[matrixRowIndex][matrixColumnIndex - 1] = tile;
-            }
-          };
-          const placeTop = () => {
-            if (matrixRowIndex === 0) {
-              this.tilesMatrix.unshift([ undefined ]);
-              this.tilesMatrix[matrixRowIndex][matrixColumnIndex] = tile;
-            } else {
-              this.tilesMatrix[matrixRowIndex - 1][matrixColumnIndex] = tile;
-            }
-          };
-          const placeBottom = () => {
-            this.tilesMatrix[matrixRowIndex + 1] ? null : this.tilesMatrix[matrixRowIndex + 1] = [ undefined ]
-            this.tilesMatrix[matrixRowIndex + 1][matrixColumnIndex] = tile;
-          }
-          switch (referenceTileRotation) {
-            case 0:
-              switch (tile.positionRef?.position) {
-                case 'RIGHT':
-                  placeRight();
-                  break;
-                case 'LEFT':
-                  placeLeft();
-                  break;
-                case 'TOP':
-                  placeTop();
-                  break;
-                case 'BOTTOM':
-                  placeBottom();
-                  break;
-              }
-              break;
-            case 90:
-              switch (tile.positionRef?.position) {
-                case 'RIGHT':
-                  placeBottom();
-                  break;
-                case 'LEFT':
-                  placeTop();
-                  break;
-                case 'TOP':
-                  placeRight();
-                  break;
-                case 'BOTTOM':
-                  placeLeft();
-                  break;
-              }
-              break;
-            case 180:
-              switch (tile.positionRef?.position) {
-                case 'RIGHT':
-                  placeLeft();
-                  break;
-                case 'LEFT':
-                  placeRight();
-                  break;
-                case 'TOP':
-                  placeBottom();
-                  break;
-                case 'BOTTOM':
-                  placeTop();
-                  break;
-              }
-              break;
-            case 270:
-              switch (tile.positionRef?.position) {
-                case 'RIGHT':
-                  placeTop();
-                  break;
-                case 'LEFT':
-                  placeBottom();
-                  break;
-                case 'TOP':
-                  placeLeft();
-                  break;
-                case 'BOTTOM':
-                  placeRight();
-                  break;
-              }
-              break;
-          }
-        }
-      })
-
-    }
-  }
-
-  private positionTilesOnBoard() {
-    if (this.tiles) {
-
-      const tiles = this.tiles;
-
-      tiles.forEach((tile, index, tiles) => {
-
-        const currentTileAsHtmlElement = this.document.getElementById(tile._id);
-
-        if (currentTileAsHtmlElement && this.tilesAreaWidth && this.tilesAreaHeight) {
-
-          const previousTile = tile.positionRef?.referenceTile ? tiles[tiles.findIndex(tileInArray => tileInArray._id === tile.positionRef?.referenceTile)] : '';
-          const previousTileId = tile.positionRef?.referenceTile.toString() || '';
-          const previousTileAsHtmlElement = this.document.getElementById(previousTileId);
-          const tilesAreaPosition = this.document.getElementById('tiles-area')?.getBoundingClientRect();
-          const currentTileRotation = tile.rotation;
-
-          if (!tile.positionRef) {
-
-            this.tilesCoordinates.add(JSON.stringify({ x: 0, y: 0 }));
-            this.firstTilePosition = { x: (this.tilesAreaWidth / 2) - 50, y: (this.tilesAreaHeight / 2) - 50 };
-            this.placeEmptyTileInMap({ x: 0, y: 0 }, tile.tileValues, tile.rotation);
-            currentTileAsHtmlElement.style.transform = `translate(${ (this.tilesAreaWidth / 2) - 50 }px, ${ (this.tilesAreaHeight / 2) - 50 }px)`;
-            currentTileAsHtmlElement.style.transform += ` rotate(${ currentTileRotation }deg)`;
-
-          } else {
-            if (previousTileAsHtmlElement && tilesAreaPosition && previousTile) {
-
-              const previousTilePosition = previousTileAsHtmlElement.getBoundingClientRect();
-              this.placeTilesRelativeToPrevious(currentTileAsHtmlElement, tile, tilesAreaPosition, previousTilePosition, previousTile, currentTileRotation);
-
-            }
-          }
-        }
-        this.createMatrix(tile);
-      })
-    }
-  }
-
-  private placeTilesRelativeToPrevious(
-    currentTileAsHtmlElement: HTMLElement,
-    tile: Tile,
-    tilesAreaPosition: DOMRect,
-    previousTilePosition: DOMRect,
-    previousTile: Tile,
-    currentTileRotation: number) {
-
-    const placeLeft = `translate(${ previousTilePosition.x - tilesAreaPosition.x - previousTilePosition.width }px, ${ previousTilePosition.y - tilesAreaPosition.y }px)`;
-    const placeRight = `translate(${ previousTilePosition.x - tilesAreaPosition.x + previousTilePosition.width }px, ${ previousTilePosition.y - tilesAreaPosition.y }px)`;
-    const placeTop = `translate(${ previousTilePosition.x - tilesAreaPosition.x }px, ${ previousTilePosition.y - tilesAreaPosition.y - previousTilePosition.height }px)`;
-    const placeBottom = `translate(${ previousTilePosition.x - tilesAreaPosition.x }px, ${ previousTilePosition.y - tilesAreaPosition.y + previousTilePosition.height }px)`;
-    const previousTileRotation = previousTile.rotation;
-
-    switch (previousTileRotation) {
-      case 0:
-        switch (tile.positionRef?.position) {
-          case 'LEFT':
-            currentTileAsHtmlElement.style.transform = placeLeft;
-            break;
-          case 'RIGHT':
-            currentTileAsHtmlElement.style.transform = placeRight;
-            break;
-          case 'TOP':
-            currentTileAsHtmlElement.style.transform = placeTop;
-            break;
-          case 'BOTTOM':
-            currentTileAsHtmlElement.style.transform = placeBottom;
-            break;
-        }
-        break;
-      case 90:
-        switch (tile.positionRef?.position) {
-          case 'LEFT':
-            currentTileAsHtmlElement.style.transform = placeTop;
-            break;
-          case 'RIGHT':
-            currentTileAsHtmlElement.style.transform = placeBottom;
-            break;
-          case 'TOP':
-            currentTileAsHtmlElement.style.transform = placeRight;
-            break;
-          case 'BOTTOM':
-            currentTileAsHtmlElement.style.transform = placeLeft;
-            break;
-        }
-        break;
-      case 180:
-        switch (tile.positionRef?.position) {
-          case 'LEFT':
-            currentTileAsHtmlElement.style.transform = placeRight;
-            break;
-          case 'RIGHT':
-            currentTileAsHtmlElement.style.transform = placeLeft;
-            break;
-          case 'TOP':
-            currentTileAsHtmlElement.style.transform = placeBottom;
-            break;
-          case 'BOTTOM':
-            currentTileAsHtmlElement.style.transform = placeTop;
-            break;
-        }
-        break;
-      case 270:
-        switch (tile.positionRef?.position) {
-          case 'LEFT':
-            currentTileAsHtmlElement.style.transform = placeBottom;
-            break;
-          case 'RIGHT':
-            currentTileAsHtmlElement.style.transform = placeTop;
-            break;
-          case 'TOP':
-            currentTileAsHtmlElement.style.transform = placeLeft;
-            break;
-          case 'BOTTOM':
-            currentTileAsHtmlElement.style.transform = placeRight;
-            break;
-        }
-        break;
+      this.tilesCoordinates.add(JSON.stringify(tile.positionRef.coordinates))
+      return this.makeTranslateString(tile.positionRef?.coordinates)
     }
 
-    currentTileAsHtmlElement.style.transform += ` rotate(${ currentTileRotation }deg)`;
-
-    this.tilesCoordinates.add(JSON.stringify(tile.positionRef?.coordinates || { x: 0, y: 0 }));
-    this.placeEmptyTileInMap(tile.positionRef?.coordinates || { x: 0, y: 0 }, tile.tileValues, tile.rotation);
-    console.log(this.emptyTiles)
   }
 
+  public placeEmptyTileInMap(tileValues: Tile["tileValues"], tileRotation: number, coordinates?: { x: number, y: number } ) {
 
-  private placeEmptyTileInMap(coordinates: { x: number, y: number }, tileValues: Tile["tileValues"], tileRotation: number) {
+    if(!coordinates) coordinates = {x: 0, y: 0}
 
     const tileEnvironments = this.tileValuesToTileEnvironments(tileValues, tileRotation)
 
@@ -342,11 +118,11 @@ export class BoardComponent implements AfterViewChecked {
       JSON.stringify({ x: coordinates.x, y: coordinates.y - 1 }),
       emptyTile({ x: coordinates.x, y: coordinates.y - 1 }, 'top', 'bottom')
     );
-    console.log(this.emptyTiles.get(JSON.stringify({ x: coordinates.x, y: coordinates.y - 1 })))
 
     this.tilesCoordinates.forEach((coordinates) => {
       this.emptyTiles.delete(coordinates);
     })
+
   }
 
   private tileValuesToTileEnvironments(tileValues: Tile["tileValues"], tileRotation: number): TileEnvironments {

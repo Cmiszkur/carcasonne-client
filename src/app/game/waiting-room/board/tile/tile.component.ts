@@ -1,6 +1,7 @@
 import {
+  AfterViewChecked,
   ChangeDetectorRef,
-  Component,
+  Component, ElementRef,
   EventEmitter,
   Input,
   OnChanges,
@@ -20,40 +21,35 @@ interface DragPosition {
   templateUrl: './tile.component.html',
   styleUrls: ['./tile.component.sass']
 })
-export class TileComponent implements OnInit, OnChanges {
+export class TileComponent implements OnChanges {
 
-  dragPosition: DragPosition = {x: 0, y: 0}
   @Input() tile: Tile | null;
   @Input() isDraggable: boolean;
   @Input() rotation: number;
   @Input() translate: string;
-  @Output() ImageLoaded = new EventEmitter<boolean>();
-  tileTransformValue: string;
+  @Output() translateValueChanged = new EventEmitter<boolean>();
 
-  constructor(private cdf: ChangeDetectorRef) {
+  constructor(private cdf: ChangeDetectorRef, private el: ElementRef) {
     this.tile = null;
     this.isDraggable = false;
     this.rotation = 0;
     this.translate = '';
-    this.tileTransformValue = ''
   }
 
-  ngOnInit(): void {
-  }
 
   ngOnChanges(changes: SimpleChanges) {
-    if(changes.rotation || changes.translate) {
-      this.tileTransformValue = this.translate + `rotate(${this.rotation}deg)`
-      this.cdf.markForCheck()
+    if(changes.translate) {
+      console.log('emitowanie tutaj powinno być')
+      this.translateValueChanged.emit(true);
     }
   }
 
   public onImageLoad() {
-    this.ImageLoaded.emit(true);
+    this.translateValueChanged.emit(true)
   }
 
-  public tileOverOtherTile() {
-    console.log('kafelek jest nad innym kafelkiem');
+  public makeRotateTransformString(rotation: number): string {
+    return `rotate(${rotation}deg)`
   }
 
   public getImageSource(imageName: string) {

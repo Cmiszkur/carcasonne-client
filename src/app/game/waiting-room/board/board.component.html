@@ -1,20 +1,20 @@
 <div *ngIf="tiles" class="tiles" id="tiles-area">
-  <app-tile *ngFor="let tile of tiles; let last = last"
+
+  <app-tile *ngFor="let tile of tiles"
             [tile]="tile"
             [rotation]="tile.rotation"
-            (ImageLoaded)="last ? onImageLoad() : null">
+            [translate]="placeTilesFromBackendOnBoard(tile)">
   </app-tile>
-  <app-tile [tile]="tiles[0]" [translate]="translateValueCurrentTile">
+
+  <app-tile [tile]="tiles[0]"
+            [translate]="translateValueCurrentTile">
   </app-tile>
-<!--  <div class="tile empty"-->
-<!--       *ngFor="let emptyTile of emptyTiles | keyvalue; let last = last"-->
-<!--       [style.transform]="emptyTile.value.position"-->
-<!--       [id]="emptyTile.key">-->
-<!--  </div>-->
+
   <app-empty-tiles *ngFor="let emptyTile of emptyTiles | keyvalue"
-                   [style.transform]="emptyTile.value.position"
                    [id]="emptyTile.key"
+                   [translate]="emptyTile.value.position"
                    emptyTileClick
                    (click)="emptyTileSelected(emptyTile)">
   </app-empty-tiles>
+
 </div>

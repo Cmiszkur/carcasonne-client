@@ -2,21 +2,25 @@
   <div *ngIf="tile"
        [ngClass]="'tile'"
        [id]="tile._id"
-       [style.transform]="tileTransformValue">
-    <img [src]="getImageSource(tile.tileType)" [alt]="tile.tileType" (load)="onImageLoad()">
+       [ngStyle]="{transform: translate}">
+    <img
+      [src]="getImageSource(tile.tileType)"
+      [alt]="tile.tileType"
+      [style.transform]="makeRotateTransformString(rotation)"
+      (load)="onImageLoad()">
     <mat-icon>rotate_right</mat-icon>
   </div>
 </ng-container>
 
-<ng-container *ngIf="isDraggable">
-  <div [ngClass]="'tile draggable'" [id]="tile._id"
-       *ngIf="tile"
-       [style.transform.rotate]="rotation"
-       cdkDragBoundary="#tiles-area"
-       (cdkDragEntered)="tileOverOtherTile()"
-       cdkDrag>
-    <img [src]="getImageSource(tile.tileType)" [alt]="tile.tileType" (load)="onImageLoad()">
-  </div>
-</ng-container>
+<!--<ng-container *ngIf="isDraggable">-->
+<!--  <div [ngClass]="'tile draggable'" [id]="tile._id"-->
+<!--       *ngIf="tile"-->
+<!--       [style.transform.rotate]="rotation"-->
+<!--       cdkDragBoundary="#tiles-area"-->
+<!--       (cdkDragEntered)="tileOverOtherTile()"-->
+<!--       cdkDrag>-->
+<!--    <img [src]="getImageSource(tile.tileType)" [alt]="tile.tileType" (load)="onImageLoad()">-->
+<!--  </div>-->
+<!--</ng-container>-->
 
 
