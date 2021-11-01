@@ -12,9 +12,12 @@ export class BoardTilesService {
 
   private firstTilePosition$: BehaviorSubject<Coordinates | null>
 
+  private clickedEmptyTileState$: BehaviorSubject<[string, boolean] | null>
+
   constructor() {
     this.placedTilesCoordinates$ = new BehaviorSubject<{coordinates: Coordinates, tileValues: Tile["tileValues"]} | null>(null)
     this.firstTilePosition$ = new BehaviorSubject<Coordinates | null>(null)
+    this.clickedEmptyTileState$ = new BehaviorSubject<[string, boolean] | null>(null);
   }
 
   public get placedTilesCoordinates(): Observable<{coordinates: Coordinates, tileValues: Tile["tileValues"]} | null> {
@@ -31,5 +34,13 @@ export class BoardTilesService {
 
   public addFirstTilePosition(firstTilePostion: Coordinates): void {
     this.firstTilePosition$.next(firstTilePostion)
+  }
+
+  public get clickedEmptyTileState(): Observable<[string, boolean] | null> {
+    return this.clickedEmptyTileState$.asObservable()
+  }
+
+  public changeClickedEmptyTileState(clickedEmptyTile: [string, boolean] | null): void {
+    this.clickedEmptyTileState$.next(clickedEmptyTile)
   }
 }

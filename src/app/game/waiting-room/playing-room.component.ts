@@ -16,10 +16,30 @@ export class PlayingRoomComponent implements OnInit {
   public numberOfFollowers: number | null;
   public arrayToIterate: Array<number>;
   public tiles: Tile[] | null;
+  public currentTile: Tile | null;
   private newRoom: Room | null;
 
   constructor(private roomService: RoomService, private router: Router) {
     // this.newRoom = history.state.room || null;
+    this.currentTile = {
+      _id: '610b9dasd234f5se090',
+      rotation: 0,
+      isFollowerPlaced: false,
+      tileType: 'road_top_bottom_town_right',
+      tileValues: {
+        cities: [ [ 'RIGHT' ] ],
+        roads: [ [ 'TOP', 'BOTTOM' ] ],
+      },
+      extraPoints: false,
+      hasChurch: true,
+      positionRef: {
+        referenceTile: '610b9de4e2694343a04ee090', position: 'LEFT',
+        coordinates: {
+          x: -1,
+          y: 0
+        }
+      },
+    }
     this.newRoom = {
       players: [
         {

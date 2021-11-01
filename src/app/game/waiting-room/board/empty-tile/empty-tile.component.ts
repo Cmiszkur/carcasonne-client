@@ -1,6 +1,4 @@
-import { ChangeDetectorRef, Component, ElementRef, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
-import { Coordinates, Emptytile } from "../../../models/emptytile";
-import { Tile } from "../../../models/Tile";
+import { Component, HostBinding, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { BoardTilesService } from "../../../services/board-tiles.service";
 
 @Component({
@@ -8,19 +6,43 @@ import { BoardTilesService } from "../../../services/board-tiles.service";
   templateUrl: './empty-tile.component.html',
   styleUrls: ['./empty-tile.component.sass']
 })
-export class EmptyTileComponent implements OnChanges {
+export class EmptyTileComponent implements OnChanges, OnInit {
 
   @Input() translate: string
+  @Input() emptyTileCoordinates: string
+  public isPlacedTileCorrect: boolean | string
+  @HostBinding("style.--border-color")
+  private borderColor: string
 
-  constructor() {
+  constructor(private boardTileService: BoardTilesService) {
     this.translate = ''
+    this.emptyTileCoordinates = ''
+    this.isPlacedTileCorrect = 'init'
+    this.borderColor = ''
   }
 
 
+  public ngOnInit() {
+    this.listenForClickedEmptyTileState()
+  }
 
-  ngOnChanges(changes: SimpleChanges) {
+  public ngOnChanges(changes: SimpleChanges) {
     if(changes.translate) {
     }
+  }
+
+  private listenForClickedEmptyTileState(){
+    this.boardTileService.clickedEmptyTileState
+      .subscribe(clickedEmptyTileState => {
+        if (clickedEmptyTileState) {
+          if(this.emptyTileCoordinates === clickedEmptyTileState[0]) {
+            console.log('state changed => ' + clickedEmptyTileState)
+            clickedEmptyTileState[1] ? this.borderColor = 'green' : this.borderColor = 'red'
+          } else {
+            this.borderColor = 'grey'
+          }
+        }
+      })
   }
 
 }

@@ -3,16 +3,19 @@
   <app-tile *ngFor="let tile of tiles"
             [tile]="tile"
             [rotation]="tile.rotation"
-            [translate]="placeTilesFromBackendOnBoard(tile)">
+            [translate]="makeTranslateStringForBackendTiles(tile)">
   </app-tile>
 
-  <app-tile [tile]="tiles[0]"
-            [translate]="translateValueCurrentTile">
+  <app-tile *ngIf="currentTile"
+            [tile]="currentTile"
+            [translate]="translateValueCurrentTile"
+            [rotation]="currentTile.rotation">
   </app-tile>
 
   <app-empty-tiles *ngFor="let emptyTile of emptyTiles | keyvalue"
                    [id]="emptyTile.key"
                    [translate]="emptyTile.value.position"
+                   [emptyTileCoordinates]="emptyTile.key"
                    emptyTileClick
                    (click)="emptyTileSelected(emptyTile)">
   </app-empty-tiles>

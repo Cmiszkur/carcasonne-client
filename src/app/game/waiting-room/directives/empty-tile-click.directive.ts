@@ -1,15 +1,13 @@
 import { Directive, HostListener } from '@angular/core';
 
 @Directive({
-  selector: '[emptyTileClick]'
+  selector: '[emptyTileClick]',
 })
 export class EmptyTileClickDirective {
-
-  constructor() { }
+  constructor() {}
 
   @HostListener('click', ['emptyTile'])
-  onClick(event: any) {
-    console.log(event)
+  onClick() {
+    //console.log(event)
   }
-
 }
