@@ -4,7 +4,11 @@
       <span class="username">{{player.username}}</span>
     </div>
     <div class="followers-area">
-      <mat-icon [style.fill]="player.color" *ngFor='let x of arrayToIterate' svgIcon='follower' aria-hidden="false"></mat-icon>
+      <mat-icon *ngFor='let x of arrayToIterate'
+                [style.fill]="player.color"
+                svgIcon='follower'
+                aria-hidden="false">
+      </mat-icon>
     </div>
   </div>
 </ng-container>

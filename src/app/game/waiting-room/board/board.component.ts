@@ -14,9 +14,13 @@ export class BoardComponent implements OnInit {
   @Input() public currentTile: Tile | null
   public emptyTiles: Map<string, Emptytile>;
   public translateValueCurrentTile: string;
+  public tilePlacementConfirmed: boolean;
+  public currentTileEnvironments: TileEnvironments;
   private tilesCoordinates: Set<string>;
   private firstTilePosition: Coordinates;
   private previouslyClickedTileCoordinates: string
+  private numberOfPawns: number
+  private isTilePlacedCorrectly: boolean;
 
   constructor(private el: ElementRef, private boardTileService: BoardTilesService) {
     this.tiles = null;
@@ -26,7 +30,10 @@ export class BoardComponent implements OnInit {
     this.firstTilePosition = {} as Coordinates;
     this.translateValueCurrentTile = '';
     this.previouslyClickedTileCoordinates = '';
-
+    this.numberOfPawns = 6;
+    this.isTilePlacedCorrectly = false;
+    this.tilePlacementConfirmed = false;
+    this.currentTileEnvironments = {} as TileEnvironments;
   }
 
   ngOnInit(): void {
@@ -38,23 +45,44 @@ export class BoardComponent implements OnInit {
         tile.positionRef?.coordinates
       );
     });
+    this.currentTileEnvironments = this.currentTile ? this.tileValuesToTileEnvironments(
+      this.currentTile.tileValues,
+      this.currentTile.rotation
+    ) : {} as TileEnvironments;
   }
 
-  public emptyTileSelected(
-    clickedEmptyTile: KeyValue<string, Emptytile>
-  ): void {
-
-    if (this.previouslyClickedTileCoordinates === clickedEmptyTile.key) {
-      if (this.currentTile) this.currentTile.rotation >= 270 ? this.currentTile.rotation = 0 : this.currentTile.rotation += 90;
+  public confirmChoice(): void {
+    if (this.isTilePlacedCorrectly) {
+      this.tilePlacementConfirmed = true;
     }
-    this.previouslyClickedTileCoordinates = clickedEmptyTile.key
+  }
 
-    const coordinates = JSON.parse(clickedEmptyTile.key) as Coordinates;
-    this.translateValueCurrentTile = this.makeTranslateString(coordinates);
+  public emptyTileSelected(clickedEmptyTile: KeyValue<string, Emptytile>): void {
 
-    this.boardTileService.changeClickedEmptyTileState(
-      [ clickedEmptyTile.key, this.checkCurrentTilePlacement(clickedEmptyTile.value) ])
+    if(!this.tilePlacementConfirmed) {
 
+      if (this.previouslyClickedTileCoordinates === clickedEmptyTile.key) {
+        if (this.currentTile) {
+          this.currentTile.rotation >= 270 ? this.currentTile.rotation = 0 : this.currentTile.rotation += 90;
+          this.currentTileEnvironments = this.tileValuesToTileEnvironments(
+            this.currentTile.tileValues,
+            this.currentTile.rotation
+          );
+        }
+      }
+
+      this.previouslyClickedTileCoordinates = clickedEmptyTile.key
+      const coordinates = JSON.parse(clickedEmptyTile.key) as Coordinates;
+
+      this.translateValueCurrentTile = this.makeTranslateString(coordinates);
+
+      const isTilePlacedCorrectly = this.checkCurrentTilePlacement(clickedEmptyTile.value)
+      this.isTilePlacedCorrectly = isTilePlacedCorrectly
+
+      this.boardTileService.changeClickedEmptyTileState([ clickedEmptyTile.key, isTilePlacedCorrectly ])
+    } else {
+      console.log('tu będzie stawiania pionka')
+    }
   }
 
   public placeTilesFromBackendOnBoard(tile: Tile): void {
@@ -130,25 +158,23 @@ export class BoardComponent implements OnInit {
   }
 
   private checkCurrentTilePlacement(clickedEmptyTile: Emptytile): boolean {
-    if (this.currentTile) {
-      const currentTileEnvironments = this.tileValuesToTileEnvironments(
-        this.currentTile.tileValues,
-        this.currentTile.rotation
-      );
+    if (this.currentTileEnvironments) {
+
       let checker: boolean = true;
+
       for (const [ key, value ] of Object.entries(clickedEmptyTile)) {
         switch (key) {
           case 'bottom':
-            checker = value === currentTileEnvironments.bottom;
+            checker = value === this.currentTileEnvironments.bottom;
             break;
           case 'top':
-            checker = value === currentTileEnvironments.top;
+            checker = value === this.currentTileEnvironments.top;
             break;
           case 'right':
-            checker = value === currentTileEnvironments.right;
+            checker = value === this.currentTileEnvironments.right;
             break;
           case 'left':
-            checker = value === currentTileEnvironments.left;
+            checker = value === this.currentTileEnvironments.left;
             break;
         }
         if (!checker) break;
@@ -173,7 +199,7 @@ export class BoardComponent implements OnInit {
 
     const tileEnvironmentsKeys = () => {
       const shiftValue = tileRotation >= 360 ? 0 : tileRotation / 90;
-      const tileEnvironmentsKeysArray: string[] = [
+      let tileEnvironmentsKeysArray: string[] = [
         'top',
         'right',
         'bottom',
@@ -188,7 +214,6 @@ export class BoardComponent implements OnInit {
       return tileEnvironmentsKeysArray;
     };
 
-    // TODO: dodać obsługę rotacji!!!
     for (const [ key, value ] of Object.entries(tileValues)) {
       value.forEach((array) =>
         array.forEach((string) => {
@@ -196,13 +221,13 @@ export class BoardComponent implements OnInit {
             case 'TOP':
               tileEnvironments[tileEnvironmentsKeys()[0] as keyof TileEnvironments] = key;
               break;
-            case 'LEFT':
+            case 'RIGHT':
               tileEnvironments[tileEnvironmentsKeys()[1] as keyof TileEnvironments] = key;
               break;
             case 'BOTTOM':
               tileEnvironments[tileEnvironmentsKeys()[2] as keyof TileEnvironments] = key;
               break;
-            case 'RIGHT':
+            case 'LEFT':
               tileEnvironments[tileEnvironmentsKeys()[3] as keyof TileEnvironments] = key;
               break;
           }

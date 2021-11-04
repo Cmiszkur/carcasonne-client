@@ -39,11 +39,12 @@ export class PlayingRoomComponent implements OnInit {
           y: 0
         }
       },
-    }
+    };
+
     this.newRoom = {
       players: [
         {
-          username: 'SavagePope',
+          username: 'User',
           color: 'green',
           followers: 6,
         },
@@ -112,8 +113,9 @@ export class PlayingRoomComponent implements OnInit {
       gameStarted: false,
       roomId: 'd4763e80754cb50bfd451fa801f7e60e5af59cf0',
       numberOfPlayers: 1,
-      roomHost: 'SavagePope',
+      roomHost: 'User',
     };
+
     this.username = this.newRoom?.roomHost || null;
     this.player = this.findPlayer();
     this.color = this.player?.color || null;
