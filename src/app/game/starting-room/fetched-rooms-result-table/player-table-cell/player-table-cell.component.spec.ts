@@ -1,20 +1,20 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { RoomComponent } from './room.component';
+import { PlayerTableCellComponent } from './player-table-cell.component';
 
-describe('RoomComponent', () => {
-  let component: RoomComponent;
-  let fixture: ComponentFixture<RoomComponent>;
+describe('PlayerTableCellComponent', () => {
+  let component: PlayerTableCellComponent;
+  let fixture: ComponentFixture<PlayerTableCellComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ RoomComponent ]
+      declarations: [ PlayerTableCellComponent ]
     })
     .compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(RoomComponent);
+    fixture = TestBed.createComponent(PlayerTableCellComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

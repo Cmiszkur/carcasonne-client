@@ -1,25 +1,25 @@
-import { Component, ElementRef, Input, OnInit, } from '@angular/core';
+import { Component, ElementRef, Input, OnInit } from '@angular/core';
 import { Tile, TileEnvironments } from '../../models/Tile';
 import { KeyValue } from '@angular/common';
 import { Coordinates, Emptytile } from '../../models/emptytile';
-import { BoardTilesService } from "../../services/board-tiles.service";
+import { BoardTilesService } from '../../services/board-tiles.service';
 
 @Component({
   selector: 'app-board',
   templateUrl: './board.component.html',
-  styleUrls: [ './board.component.sass' ],
+  styleUrls: ['./board.component.sass'],
 })
 export class BoardComponent implements OnInit {
   @Input() public tiles: Tile[] | null;
-  @Input() public currentTile: Tile | null
+  @Input() public currentTile: Tile | null;
   public emptyTiles: Map<string, Emptytile>;
   public translateValueCurrentTile: string;
   public tilePlacementConfirmed: boolean;
   public currentTileEnvironments: TileEnvironments;
   private tilesCoordinates: Set<string>;
   private firstTilePosition: Coordinates;
-  private previouslyClickedTileCoordinates: string
-  private numberOfPawns: number
+  private previouslyClickedTileCoordinates: string;
+  private numberOfPawns: number;
   private isTilePlacedCorrectly: boolean;
 
   constructor(private el: ElementRef, private boardTileService: BoardTilesService) {
@@ -37,18 +37,13 @@ export class BoardComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.tiles?.forEach((tile) => {
+    this.tiles?.forEach(tile => {
       this.placeTilesFromBackendOnBoard(tile);
-      this.placeEmptyTileInMap(
-        tile.tileValues,
-        tile.rotation,
-        tile.positionRef?.coordinates
-      );
+      this.placeEmptyTileInMap(tile.tileValues, tile.rotation, tile.positionRef?.coordinates);
     });
-    this.currentTileEnvironments = this.currentTile ? this.tileValuesToTileEnvironments(
-      this.currentTile.tileValues,
-      this.currentTile.rotation
-    ) : {} as TileEnvironments;
+    this.currentTileEnvironments = this.currentTile
+      ? this.tileValuesToTileEnvironments(this.currentTile.tileValues, this.currentTile.rotation)
+      : ({} as TileEnvironments);
   }
 
   public confirmChoice(): void {
@@ -58,30 +53,25 @@ export class BoardComponent implements OnInit {
   }
 
   public emptyTileSelected(clickedEmptyTile: KeyValue<string, Emptytile>): void {
-
-    if(!this.tilePlacementConfirmed) {
-
+    if (!this.tilePlacementConfirmed) {
       if (this.previouslyClickedTileCoordinates === clickedEmptyTile.key) {
         if (this.currentTile) {
-          this.currentTile.rotation >= 270 ? this.currentTile.rotation = 0 : this.currentTile.rotation += 90;
-          this.currentTileEnvironments = this.tileValuesToTileEnvironments(
-            this.currentTile.tileValues,
-            this.currentTile.rotation
-          );
+          this.currentTile.rotation >= 270 ? (this.currentTile.rotation = 0) : (this.currentTile.rotation += 90);
+          this.currentTileEnvironments = this.tileValuesToTileEnvironments(this.currentTile.tileValues, this.currentTile.rotation);
         }
       }
 
-      this.previouslyClickedTileCoordinates = clickedEmptyTile.key
+      this.previouslyClickedTileCoordinates = clickedEmptyTile.key;
       const coordinates = JSON.parse(clickedEmptyTile.key) as Coordinates;
 
       this.translateValueCurrentTile = this.makeTranslateString(coordinates);
 
-      const isTilePlacedCorrectly = this.checkCurrentTilePlacement(clickedEmptyTile.value)
-      this.isTilePlacedCorrectly = isTilePlacedCorrectly
+      const isTilePlacedCorrectly = this.checkCurrentTilePlacement(clickedEmptyTile.value);
+      this.isTilePlacedCorrectly = isTilePlacedCorrectly;
 
-      this.boardTileService.changeClickedEmptyTileState([ clickedEmptyTile.key, isTilePlacedCorrectly ])
+      this.boardTileService.changeClickedEmptyTileState([clickedEmptyTile.key, isTilePlacedCorrectly]);
     } else {
-      console.log('tu będzie stawiania pionka')
+      console.log('tu będzie stawiania pionka');
     }
   }
 
@@ -102,32 +92,23 @@ export class BoardComponent implements OnInit {
 
   public makeTranslateStringForBackendTiles(tile: Tile): string {
     if (!tile.positionRef) {
-      return `translate(${ this.firstTilePosition.x }px, ${ this.firstTilePosition.y }px`;
+      return `translate(${this.firstTilePosition.x}px, ${this.firstTilePosition.y}px`;
     } else {
       return this.makeTranslateString(tile.positionRef?.coordinates);
     }
   }
 
-  public placeEmptyTileInMap(
-    tileValues: Tile['tileValues'],
-    tileRotation: number,
-    coordinates?: { x: number; y: number }
-  ) {
+  public placeEmptyTileInMap(tileValues: Tile['tileValues'], tileRotation: number, coordinates?: { x: number; y: number }) {
     this.tiles?.forEach(() => {
       if (!coordinates) coordinates = { x: 0, y: 0 };
 
-      const tileEnvironments = this.tileValuesToTileEnvironments(
-        tileValues,
-        tileRotation
-      );
+      const tileEnvironments = this.tileValuesToTileEnvironments(tileValues, tileRotation);
 
-      const emptyTile = (
-        coordinates: Coordinates,
-        emptyTileKeyPosition: keyof Emptytile,
-        TileKeyValue: keyof TileEnvironments
-      ) => {
+      const emptyTile = (coordinates: Coordinates, emptyTileKeyPosition: keyof Emptytile, TileKeyValue: keyof TileEnvironments) => {
         const value = this.emptyTiles.get(JSON.stringify(coordinates));
-        const object = { position: this.makeTranslateString(coordinates) } as Emptytile;
+        const object = {
+          position: this.makeTranslateString(coordinates),
+        } as Emptytile;
         return {
           ...(value || object),
           [emptyTileKeyPosition]: tileEnvironments[TileKeyValue],
@@ -151,7 +132,7 @@ export class BoardComponent implements OnInit {
         emptyTile({ x: coordinates.x, y: coordinates.y - 1 }, 'top', 'bottom')
       );
 
-      this.tilesCoordinates.forEach((coordinates) => {
+      this.tilesCoordinates.forEach(coordinates => {
         this.emptyTiles.delete(coordinates);
       });
     });
@@ -159,10 +140,9 @@ export class BoardComponent implements OnInit {
 
   private checkCurrentTilePlacement(clickedEmptyTile: Emptytile): boolean {
     if (this.currentTileEnvironments) {
-
       let checker: boolean = true;
 
-      for (const [ key, value ] of Object.entries(clickedEmptyTile)) {
+      for (const [key, value] of Object.entries(clickedEmptyTile)) {
         switch (key) {
           case 'bottom':
             checker = value === this.currentTileEnvironments.bottom;
@@ -185,11 +165,7 @@ export class BoardComponent implements OnInit {
     }
   }
 
-  private tileValuesToTileEnvironments(
-    tileValues: Tile['tileValues'],
-    tileRotation: number
-  ): TileEnvironments {
-
+  private tileValuesToTileEnvironments(tileValues: Tile['tileValues'], tileRotation: number): TileEnvironments {
     const tileEnvironments: TileEnvironments = {
       top: 'fields',
       right: 'fields',
@@ -199,12 +175,7 @@ export class BoardComponent implements OnInit {
 
     const tileEnvironmentsKeys = () => {
       const shiftValue = tileRotation >= 360 ? 0 : tileRotation / 90;
-      let tileEnvironmentsKeysArray: string[] = [
-        'top',
-        'right',
-        'bottom',
-        'left',
-      ];
+      let tileEnvironmentsKeysArray: string[] = ['top', 'right', 'bottom', 'left'];
 
       for (let i = 1; i <= shiftValue; i++) {
         let firstElement = tileEnvironmentsKeysArray.shift();
@@ -214,9 +185,9 @@ export class BoardComponent implements OnInit {
       return tileEnvironmentsKeysArray;
     };
 
-    for (const [ key, value ] of Object.entries(tileValues)) {
-      value.forEach((array) =>
-        array.forEach((string) => {
+    for (const [key, value] of Object.entries(tileValues)) {
+      value.forEach(array =>
+        array.forEach(string => {
           switch (string) {
             case 'TOP':
               tileEnvironments[tileEnvironmentsKeys()[0] as keyof TileEnvironments] = key;
@@ -241,8 +212,8 @@ export class BoardComponent implements OnInit {
   private makeTranslateString(coordinates: Coordinates): string {
     if (this.firstTilePosition) {
       return `translate(
-        ${ this.firstTilePosition.x + 112 * coordinates.x }px,
-        ${ this.firstTilePosition.y - 112 * coordinates.y }px)`;
+        ${this.firstTilePosition.x + 112 * coordinates.x}px,
+        ${this.firstTilePosition.y - 112 * coordinates.y}px)`;
     } else {
       return '';
     }

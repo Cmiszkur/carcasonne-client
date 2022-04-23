@@ -15,7 +15,6 @@ export interface UserResponse {
 }
 
 export interface LoginAuthResponse {
-  statusCode: number;
   message: string | UserResponse;
   error?: string;
 }

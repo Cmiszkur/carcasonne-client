@@ -4,7 +4,22 @@ import { RouterModule, Routes } from '@angular/router';
 import { AppComponent } from './app.component';
 
 const routes: Routes = [
-  { path: '', component: AppComponent, canActivate: [AuthGuard] },
+  {
+    path: '',
+    component: AppComponent,
+    children: [
+      {
+        path: '',
+        redirectTo: '/game',
+        pathMatch: 'full',
+      },
+    ],
+  },
+  {
+    path: 'game',
+    canActivate: [AuthGuard],
+    loadChildren: () => import('./game/game.module').then(module => module.GameModule),
+  },
 ];
 
 @NgModule({
