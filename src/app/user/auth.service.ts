@@ -1,27 +1,41 @@
-import { Constants } from './../constants/httpOptions';
-import { AuthResponse, LoginAuthResponse, loginUser } from '../interfaces/responseInterfaces';
+import { Constants } from '../constants/httpOptions';
+import { AuthResponse, LoginAuthResponse, loginUser, UserResponse } from '../interfaces/responseInterfaces';
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { BehaviorSubject, Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  constructor(private http: HttpClient) {}
+  /**
+   * User returned from authentication process.
+   * @private
+   */
+  private user$: BehaviorSubject<UserResponse | null>;
+  /**
+   * Url used to save url from where application redirected to login page.
+   * It's later used to redirect back.
+   */
+  public redirectUrl: string | null;
+  private authUrl: string;
+  private loginUrl: string;
 
-  public redirectUrl: string | null = null;
-  private authUrl = Constants.baseUrl + 'restricted';
-  private loginUrl = Constants.baseUrl + 'users/login';
+  constructor(private http: HttpClient) {
+    this.redirectUrl = null;
+    this.user$ = new BehaviorSubject<UserResponse | null>(null);
+    this.authUrl = Constants.baseUrl + 'restricted';
+    this.loginUrl = Constants.baseUrl + 'users/login';
+  }
 
-  async auth(): Promise<boolean> {
+  public async auth(): Promise<boolean> {
     return this.http
       .get<AuthResponse>(this.authUrl, Constants.httpOptions)
       .toPromise()
       .then(
         response => {
-          console.log(response);
+          this.saveUser = response.message;
           return true;
         },
         e => {
@@ -31,13 +45,22 @@ export class AuthService {
       );
   }
 
-  login(loginUser: loginUser): Observable<LoginAuthResponse> {
+  public login(loginUser: loginUser): Observable<LoginAuthResponse> {
     return this.http
       .post<LoginAuthResponse>(this.loginUrl, loginUser, Constants.httpOptions)
       .pipe(catchError(this.handleError<LoginAuthResponse>()));
   }
 
-  handleError<T>() {
+  public get user(): UserResponse | null {
+    return this.user$.value;
+  }
+
+  private set saveUser(user: UserResponse) {
+    this.user$.next(user);
+  }
+
+
+  private handleError<T>() {
     return (error: HttpErrorResponse): Observable<T> => {
       console.log(error);
       const errorMessage = error.error;

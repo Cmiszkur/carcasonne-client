@@ -1,8 +1,7 @@
 import { SelectionModel } from '@angular/cdk/collections';
-import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
-import { Room } from '../../models/Room';
-import { RoomService } from '../../services/room.service';
+import { ShortenedRoom } from '../../models/Room';
 
 @Component({
   selector: 'app-fetched-rooms-result-table',
@@ -11,23 +10,30 @@ import { RoomService } from '../../services/room.service';
 })
 export class FetchedRoomsResultTableComponent implements OnChanges {
   public displayedColumns: string[];
-  public selection: SelectionModel<Room>;
-  public dataSource: MatTableDataSource<Room>;
-  @Input() public availableRooms: Room[] | null;
+  public selection: SelectionModel<ShortenedRoom>;
+  public dataSource: MatTableDataSource<ShortenedRoom>;
+  @Input() public availableRooms: ShortenedRoom[] | null;
+  @Output() public selectedRoom: EventEmitter<ShortenedRoom>;
 
   constructor() {
     this.displayedColumns = ['select', 'roomId', 'players', 'roomHost', 'numberOfPlayers'];
-    this.dataSource = new MatTableDataSource<Room>([]);
-    this.selection = new SelectionModel<Room>(false, []);
+    this.dataSource = new MatTableDataSource<ShortenedRoom>([]);
+    this.selection = new SelectionModel<ShortenedRoom>(false, []);
     this.availableRooms = null;
+    this.selectedRoom = new EventEmitter<ShortenedRoom>();
   }
 
   public ngOnChanges(changes: SimpleChanges) {
     if (changes.availableRooms.currentValue) {
       if (this.availableRooms) {
         console.log('availableRooms', this.availableRooms);
-        this.dataSource = new MatTableDataSource<Room>(this.availableRooms);
+        this.dataSource = new MatTableDataSource<ShortenedRoom>(this.availableRooms);
       }
     }
+  }
+
+  public selectAndEmitRoom(selectedRoom: ShortenedRoom): void {
+    this.selection.toggle(selectedRoom);
+    this.selectedRoom.emit(selectedRoom);
   }
 }

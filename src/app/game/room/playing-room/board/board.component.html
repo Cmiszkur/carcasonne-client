@@ -1,13 +1,13 @@
 <div *ngIf="tiles" class="tiles" id="tiles-area">
 
   <app-tile *ngFor="let tile of tiles"
-            [tile]="tile"
+            [extendedTile]="tile"
             [rotation]="tile.rotation"
             [translate]="makeTranslateStringForBackendTiles(tile)">
   </app-tile>
 
   <app-tile *ngIf="currentTile"
-            [tile]="currentTile"  
+            [extendedTile]="currentTile"  
             [translate]="translateValueCurrentTile"
             [rotation]="currentTile.rotation"
             [isCurrentTile]="true"

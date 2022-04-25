@@ -1,5 +1,8 @@
 <div class="table-wrapper">
-    <app-fetched-rooms-result-table [availableRooms]="availableRooms">
+    <app-fetched-rooms-result-table [availableRooms]="availableRooms"
+                                    (selectedRoom)="saveSelectedRoomId($event)">
     </app-fetched-rooms-result-table>
+    <app-player-options-dialog-button (playerOptions)="joinRoom($event)"></app-player-options-dialog-button>
 </div>
+
 

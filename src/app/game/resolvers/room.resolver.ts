@@ -1,16 +1,16 @@
 import { Injectable } from '@angular/core';
 import { Resolve } from '@angular/router';
 import { Observable } from 'rxjs';
-import { Room } from '../models/Room';
+import { ShortenedRoom } from '../models/Room';
 import { RoomService } from '../services/room.service';
 
 @Injectable({
   providedIn: 'root',
 })
-export class RoomResolver implements Resolve<Room[] | null> {
+export class RoomResolver implements Resolve<ShortenedRoom[] | null> {
   constructor(private roomService: RoomService) {}
 
-  resolve(): Observable<Room[] | null> {
+  resolve(): Observable<ShortenedRoom[] | null> {
     return this.roomService.getRooms();
   }
 }

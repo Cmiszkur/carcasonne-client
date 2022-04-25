@@ -1,6 +1,6 @@
 export interface AuthResponse {
   statusCode: number;
-  message: string;
+  message: UserResponse;
 }
 
 export interface loginUser {
@@ -15,6 +15,11 @@ export interface UserResponse {
 }
 
 export interface LoginAuthResponse {
+  /**
+   * If unauthorized exception message contains "password" or "username"
+   * which indicates which field is filled incorrectly.
+   * On success message contains user data.
+   */
   message: string | UserResponse;
   error?: string;
 }

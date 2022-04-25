@@ -1,5 +1,5 @@
 import { Component, HostBinding, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
-import { BoardTilesService } from "../../../services/board-tiles.service";
+import { BoardTilesService } from "../../../../services/board-tiles.service";
 
 @Component({
   selector: 'app-empty-tiles',

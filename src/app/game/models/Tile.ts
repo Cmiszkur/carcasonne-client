@@ -1,32 +1,38 @@
 export interface Tile {
   _id: string;
-  rotation: number;
-  tileType: string;
+  tileName: string;
+  tileValues: TileValues;
   extraPoints: boolean;
   hasChurch: boolean;
-  followerPlacement?: {
-    username: string;
-    playerColor: string;
-    placement: string;
-  };
-  isFollowerPlaced: boolean;
-  tileValues: {
-    cities?: Array<string>[];
-    roads?: Array<string>[];
-  };
-  positionRef: {
-    referenceTile: string;
-    position: string;
-    coordinates: {
-      x: number,
-      y: number
-    }
-  } | null;
 }
 
 export interface TileEnvironments {
-  top: string,
-  right: string,
-  bottom: string,
-  left: string
+  top: string;
+  right: string;
+  bottom: string;
+  left: string;
+}
+
+export interface FollowerDetails {
+  username: string;
+  playerColor: string;
+  placement: TileEnvironments;
+  position: Position;
+}
+
+export enum Position {
+  TOP = 'TOP',
+  BOTTOM = 'BOTTOM',
+  RIGHT = 'RIGHT',
+  LEFT = 'LEFT',
+}
+
+export interface TileValues {
+  roads?: [Position[]];
+  cities?: [Position[]];
+}
+
+export interface Coordinates {
+  x: number;
+  y: number;
 }
