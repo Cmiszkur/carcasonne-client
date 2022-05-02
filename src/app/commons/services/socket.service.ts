@@ -27,6 +27,14 @@ export class SocketService {
   }
 
   /**
+   * Removes many events listeners from socket.
+   * @param events
+   */
+  public removeManyListeners(...events: string[]): void {
+    events.forEach(event => this.removeListener(event));
+  }
+
+  /**
    * Disconnects from the socket.io backend.
    * @protected
    */

@@ -5,6 +5,7 @@ import { Player } from '../../models/Room';
 import { RoomService } from '../../services/room.service';
 import { AuthService } from '../../../user/auth.service';
 import { UserResponse } from '../../../interfaces/responseInterfaces';
+import { Constants } from '../../../constants/httpOptions';
 
 const follower = require('!!raw-loader?!../../../../assets/SVG/follower.svg');
 
@@ -14,9 +15,23 @@ const follower = require('!!raw-loader?!../../../../assets/SVG/follower.svg');
   styleUrls: ['./dashboard.component.sass'],
 })
 export class DashboardComponent implements OnInit {
+  /**
+   * Array with length equal to number of meeples the players have.
+   * Used to iterate over in HTML template.
+   */
   public arrayToIterate: Array<number>;
+  /**
+   * Currently logged in user.
+   */
   public player: Player | null;
-  public players: Player[];
+  /**
+   * All players beside logged in user.
+   */
+  public restOfThePlayers: Player[];
+  /**
+   * Currently logged in user data.
+   * @private
+   */
   private user: UserResponse | null;
 
   constructor(
@@ -26,7 +41,7 @@ export class DashboardComponent implements OnInit {
     private authService: AuthService
   ) {
     this.arrayToIterate = Array(1).fill(1);
-    this.players = this.roomService.currentRoom?.players || [];
+    this.restOfThePlayers = [];
     this.player = null;
     this.user = this.authService.user;
     iconRegistry.addSvgIconLiteral('follower', sanitizer.bypassSecurityTrustHtml(follower.default));
@@ -38,9 +53,9 @@ export class DashboardComponent implements OnInit {
 
   private listenForCurrentRoomChanges(): void {
     this.roomService.currentRoomAsObservable().subscribe(room => {
-      this.players = room?.players || [];
-      console.log(this.players);
-      this.player = this.findPlayer();
+      const players: Player[] = room?.players || [];
+      this.player = this.findPlayer(players);
+      this.restOfThePlayers = this.getRestOfThePlayers(players);
       this.arrayToIterate = Array(this.player?.followers).fill(1);
     });
   }
@@ -49,7 +64,20 @@ export class DashboardComponent implements OnInit {
    * Finds player that corresponds to username of logged in user.
    * @private
    */
-  private findPlayer(): Player | null {
-    return this.players.find(player => player.username === this.user?.username) || null;
+  private findPlayer(players: Player[]): Player | null {
+    return players.find(player => player.username === this.user?.username) || null;
+  }
+
+  /**
+   * Returns all players but the one logged in.
+   * @param players
+   * @private
+   */
+  private getRestOfThePlayers(_players: Player[]): Player[] {
+    const players: Player[] = Constants.copy<Player[]>(_players);
+    players.forEach((player, index, array) => {
+      if (player.username === this.user?.username) delete array[index];
+    });
+    return players;
   }
 }

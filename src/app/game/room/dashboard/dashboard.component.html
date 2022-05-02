@@ -1,14 +1,5 @@
-<ng-container *ngIf='player'>
-  <div class="player-section">
-    <div class="username-area">
-      <span class="username">{{player.username}}</span>
-    </div>
-    <div class="followers-area">
-      <mat-icon *ngFor='let x of arrayToIterate'
-                [style.fill]="player.color"
-                svgIcon='follower'
-                aria-hidden="false">
-      </mat-icon>
-    </div>
-  </div>
-</ng-container>
+<app-player-section [player]="player">
+</app-player-section>
+<div class="divider"></div>
+<app-player-section *ngFor="let player of restOfThePlayers" [player]="player">
+</app-player-section>

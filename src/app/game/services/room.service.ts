@@ -1,4 +1,4 @@
-import { Room, ShortenedRoom } from '../models/Room';
+import { Player, Room, ShortenedRoom } from '../models/Room';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -40,6 +40,26 @@ export class RoomService extends SocketService {
     this.currentRoom$ = new BehaviorSubject<Room | null>(null);
   }
 
+  public get availableRooms(): ShortenedRoom[] | null {
+    return this.availableRooms$.value;
+  }
+
+  public get selectedRoomId(): string | null {
+    return this.selectedRoomId$.value;
+  }
+
+  public get currentRoom(): Room | null {
+    return this.currentRoom$.value;
+  }
+
+  public set setSelectedRoomId(roomId: string) {
+    this.selectedRoomId$.next(roomId);
+  }
+
+  public set setCurrentRoom(room: Room) {
+    this.currentRoom$.next(room);
+  }
+
   public getRoom(): Observable<Room> {
     this.connect();
     return new Observable(subscriber => {
@@ -62,26 +82,6 @@ export class RoomService extends SocketService {
 
   public currentRoomAsObservable(): Observable<Room | null> {
     return this.currentRoom$.asObservable();
-  }
-
-  public get availableRooms(): ShortenedRoom[] | null {
-    return this.availableRooms$.value;
-  }
-
-  public get selectedRoomId(): string | null {
-    return this.selectedRoomId$.value;
-  }
-
-  public get currentRoom(): Room | null {
-    return this.currentRoom$.value;
-  }
-
-  public set setSelectedRoomId(roomId: string) {
-    this.selectedRoomId$.next(roomId);
-  }
-
-  public set setCurrentRoom(room: Room) {
-    this.currentRoom$.next(room);
   }
 
   /**
@@ -108,11 +108,55 @@ export class RoomService extends SocketService {
    * If room is returned it's being set as current room.
    */
   public receiveJoinRoomResponse(): Observable<SocketAnswer> {
-    return this.fromEventOnce<SocketAnswer>('joined_room').pipe(
-      tap(socketAnswer => {
-        const room: Room | null = socketAnswer.answer?.room || null;
-        if (room) this.setCurrentRoom = room;
-      })
-    );
+    return this.fromEventOnce<SocketAnswer>('joined_room').pipe(tap(socketAnswer => this.updateRoom(socketAnswer)));
+  }
+
+  /**
+   * Listens for ``game_started`` response from socket.io backend.
+   * If room is returned it's being set as current room.
+   */
+  public receiveGameStartedResponse(): Observable<SocketAnswer> {
+    this.connect();
+    return this.fromEventOnce<SocketAnswer>('game_started').pipe(tap(socketAnswer => this.updateRoom(socketAnswer)));
+  }
+
+  /**
+   * Listens for ``new_player_joined`` response from socket.io backend.
+   * Updates current room with returned players.
+   */
+  public receiveNewPlayerJoinedResponse(): Observable<Player[]> {
+    this.connect();
+    return this.fromEvent<Player[]>('new_player_joined').pipe(tap(players => this.updatePlayers(players)));
+  }
+
+  /**
+   * Listens for ``player_left`` response from socket.io backend.
+   * Updates current room with returned players.
+   */
+  public receivePlayerLeftResponse(): Observable<Player[]> {
+    this.connect();
+    return this.fromEvent<Player[]>('player_left').pipe(tap(players => this.updatePlayers(players)));
+  }
+
+  /**
+   * Updates players in current room.
+   * @param players
+   * @private
+   */
+  private updatePlayers(players: Player[]): void {
+    const currentRoom: Room | null = this.currentRoom;
+    if (!currentRoom) return;
+    currentRoom.players = players;
+    this.setCurrentRoom = currentRoom;
+  }
+
+  /**
+   * Updates current room.
+   * @param socketAnswer
+   * @private
+   */
+  private updateRoom(socketAnswer: SocketAnswer): void {
+    const room: Room | null = socketAnswer.answer?.room || null;
+    if (room) this.setCurrentRoom = room;
   }
 }

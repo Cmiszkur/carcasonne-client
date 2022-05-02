@@ -10,6 +10,7 @@ import { EmptyTileComponent } from "./playing-room/board/empty-tile/empty-tile.c
 import { EmptyTileClickDirective } from "./playing-room/directives/empty-tile-click.directive";
 import { CommonsModule } from "../../commons/commons.module";
 import { WaitingRoomComponent } from './waiting-room/waiting-room.component';
+import { PlayerSectionComponent } from './dashboard/player-section/player-section.component';
 
 
 @NgModule({
@@ -22,6 +23,7 @@ import { WaitingRoomComponent } from './waiting-room/waiting-room.component';
     EmptyTileComponent,
     EmptyTileClickDirective,
     WaitingRoomComponent,
+    PlayerSectionComponent,
   ],
   imports: [
     CommonModule,

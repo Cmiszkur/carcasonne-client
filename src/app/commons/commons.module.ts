@@ -10,8 +10,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatRadioModule } from '@angular/material/radio';
-import { AlertComponent } from './alert/alert.component';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { BaseComponent } from './components/base/base.component';
 
 const allModules = [
   MatButtonModule,
@@ -31,8 +31,8 @@ const allModules = [
 ];
 
 @NgModule({
-  declarations: [],
+  declarations: [BaseComponent],
   imports: [...allModules],
-  exports: [...allModules],
+  exports: [...allModules, BaseComponent],
 })
 export class CommonsModule {}
