@@ -1,5 +1,5 @@
 import { PlayerOptions } from 'src/app/game/models/Room';
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { PlayerOptionsDialogWindowComponent } from './player-options-dialog-window/player-options-dialog-window.component';
 
@@ -9,10 +9,15 @@ import { PlayerOptionsDialogWindowComponent } from './player-options-dialog-wind
   styleUrls: ['./player-options-dialog-button.component.sass'],
 })
 export class PlayerOptionsDialogButtonComponent {
+  /**
+   * Text inside a button.
+   */
+  @Input() public text: string;
   @Output() public playerOptions: EventEmitter<PlayerOptions>;
 
   constructor(public dialog: MatDialog) {
     this.playerOptions = new EventEmitter<PlayerOptions>();
+    this.text = '';
   }
 
   public openDialog(): void {

@@ -53,3 +53,7 @@ export interface PlacedTilePayload extends BasePayload {
 export interface BasePayload {
   roomID: string;
 }
+
+export interface CreateRoomPayload {
+  color: string;
+}

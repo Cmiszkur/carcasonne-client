@@ -35,8 +35,31 @@ export class StartingRoomComponent implements OnInit {
    * @param options - ``{ color: string }``
    */
   public joinRoom(options: PlayerOptions): void {
+    this.navigateToWaitingRoom(this.roomService.selectedRoomId, options);
+  }
+
+  /**
+   * Creates room and on success navigates to waiting room.
+   * @param options
+   */
+  public createRoom(options: PlayerOptions): void {
+    this.roomService.createRoom(options?.color).subscribe(createdRoom => {
+      const roomID: string | null = createdRoom.answer?.room?.roomId || null;
+      this.navigateToWaitingRoom(roomID, options);
+    });
+  }
+
+  /**
+   * Navigates to waiting room and sets query params.
+   * @param roomID
+   * @param options
+   * @private
+   */
+  private navigateToWaitingRoom(roomID: string | null, options: PlayerOptions): void {
+    if (!roomID) return;
+    console.log('navigating to waiting room...');
     this.router.navigate(['./room/waiting-room'], {
-      queryParams: { roomID: this.roomService.selectedRoomId, ...options },
+      queryParams: { roomID: roomID, ...options },
       relativeTo: this.route,
     });
   }

@@ -1,10 +1,10 @@
-import { Player, Room, ShortenedRoom } from '../models/Room';
+import { Player, PlayersColors, Room, ShortenedRoom } from '../models/Room';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Constants } from '../../constants/httpOptions';
 import { tap } from 'rxjs/operators';
-import { JoinRoomPayload, RoomError, SocketAnswer } from '../models/socket';
+import { CreateRoomPayload, JoinRoomPayload, RoomError, SocketAnswer } from '../models/socket';
 import { CustomError } from 'src/app/commons/customErrorHandler';
 import { SocketService } from '../../commons/services/socket.service';
 
@@ -48,8 +48,12 @@ export class RoomService extends SocketService {
     return this.selectedRoomId$.value;
   }
 
-  public get currentRoom(): Room | null {
+  public get currentRoomValue(): Room | null {
     return this.currentRoom$.value;
+  }
+
+  public get currentRoom(): Observable<Room | null> {
+    return this.currentRoom$.asObservable();
   }
 
   public set setSelectedRoomId(roomId: string) {
@@ -68,11 +72,6 @@ export class RoomService extends SocketService {
         subscriber.complete();
       });
     });
-  }
-
-  public createRoom() {
-    this.connect();
-    this.socket.emit('create_room');
   }
 
   public getRooms(): Observable<ShortenedRoom[]> {
@@ -101,6 +100,20 @@ export class RoomService extends SocketService {
     this.connect();
     this.socket.emit('join_room', joinRoomPayload);
     return this.receiveJoinRoomResponse();
+  }
+
+  /**
+   * Creates room, updates current room and returns socket response.
+   * @param color - meeple color
+   */
+  public createRoom(color?: PlayersColors | null): Observable<SocketAnswer> {
+    if (!color) {
+      throw new CustomError(RoomError.MEEPLE_COLOR_NOT_SPECIFIED, 'Choose your meeple color');
+    }
+    const createRoomPayload: CreateRoomPayload = { color };
+    this.connect();
+    this.socket.emit('create_room', createRoomPayload);
+    return this.receiveCreateRoomResponse();
   }
 
   /**
@@ -139,12 +152,21 @@ export class RoomService extends SocketService {
   }
 
   /**
+   * Listens for ``game_started`` response from socket.io backend.
+   * If room is returned it's being set as current room.
+   */
+  private receiveCreateRoomResponse(): Observable<SocketAnswer> {
+    this.connect();
+    return this.fromEventOnce<SocketAnswer>('created_room_response').pipe(tap(socketAnswer => this.updateRoom(socketAnswer)));
+  }
+
+  /**
    * Updates players in current room.
    * @param players
    * @private
    */
   private updatePlayers(players: Player[]): void {
-    const currentRoom: Room | null = this.currentRoom;
+    const currentRoom: Room | null = this.currentRoomValue;
     if (!currentRoom) return;
     currentRoom.players = players;
     this.setCurrentRoom = currentRoom;
