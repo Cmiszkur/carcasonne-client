@@ -4,9 +4,10 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Constants } from '../../constants/httpOptions';
 import { tap } from 'rxjs/operators';
-import { CreateRoomPayload, JoinRoomPayload, RoomError, SocketAnswer } from '../models/socket';
+import { CreateRoomPayload, JoinRoomPayload, RoomError, SocketAnswer, StartGamePayload } from '../models/socket';
 import { CustomError } from 'src/app/commons/customErrorHandler';
 import { SocketService } from '../../commons/services/socket.service';
+import { C } from '@angular/cdk/keycodes';
 
 @Injectable({
   providedIn: 'root',
@@ -93,9 +94,11 @@ export class RoomService extends SocketService {
     if (!_roomID) {
       throw new CustomError(RoomError.ROOM_ID_NOT_SPECIFIED, 'Choose room which you want to join');
     }
-    if (!color) {
-      throw new CustomError(RoomError.MEEPLE_COLOR_NOT_SPECIFIED, 'Choose your meeple color');
-    }
+    //TODO: Zastanowić się nad obłsugą tego błedu lub rezygnacją ze sprawdzania tego na froncie.
+    // if (!color && !this.currentRoomValue?.gameStarted) {
+    //   console.log(this.currentRoomValue);
+    //   throw new CustomError(RoomError.MEEPLE_COLOR_NOT_SPECIFIED, 'Choose your meeple color');
+    // }
     const joinRoomPayload: JoinRoomPayload = { roomID: _roomID, color };
     this.connect();
     this.socket.emit('join_room', joinRoomPayload);
@@ -114,6 +117,18 @@ export class RoomService extends SocketService {
     this.connect();
     this.socket.emit('create_room', createRoomPayload);
     return this.receiveCreateRoomResponse();
+  }
+
+  /**
+   * Starts the game, start game response listener is set in ``RoomComponent``..
+   */
+  public startGame(): void {
+    const roomID: string | undefined = this.currentRoomValue?.roomId;
+    if (!roomID) {
+      throw new CustomError(RoomError.ROOM_NOT_FOUND, 'Try reloading the page');
+    }
+    const startGamePayload: StartGamePayload = { roomID };
+    this.socket.emit('start_game', startGamePayload);
   }
 
   /**

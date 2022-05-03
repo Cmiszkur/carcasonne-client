@@ -24,6 +24,9 @@ const routes: Routes = [
       },
       {
         path: 'playing-room',
+        resolve: {
+          joinedRoom: JoinRoomResolver,
+        },
         component: PlayingRoomComponent,
       },
     ],
