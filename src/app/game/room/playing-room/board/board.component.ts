@@ -59,7 +59,10 @@ export class BoardComponent implements OnInit {
       if (this.previouslyClickedTileCoordinates === clickedEmptyTile.key) {
         if (this.currentTile) {
           this.currentTile.rotation >= 270 ? (this.currentTile.rotation = 0) : (this.currentTile.rotation += 90);
-          this.currentTileEnvironments = this.tileValuesToTileEnvironments(this.currentTile.tile.tileValues, this.currentTile.rotation);
+          this.currentTileEnvironments = this.tileValuesToTileEnvironments(
+            this.currentTile.tile.tileValues,
+            this.currentTile.rotation
+          );
         }
       }
 
@@ -82,6 +85,7 @@ export class BoardComponent implements OnInit {
   }
 
   public makeTranslateStringForBackendTiles(tile: ExtendedTile): string {
+    if (!tile.coordinates) return ''; //TODO: Pomysleć nad lepsza obsługą błędu.
     if (tile.coordinates.x === 0 && tile.coordinates.y === 0) {
       return `translate(${this.firstTilePosition.x}px, ${this.firstTilePosition.y}px`;
     } else {

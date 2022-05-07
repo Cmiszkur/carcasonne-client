@@ -12,22 +12,22 @@ export class StartingRoomComponent implements OnInit {
   /**
    * All available rooms.
    */
-  public availableRooms: ShortenedRoom[] | null;
+  public availableRooms: ShortenedRoom[];
 
   constructor(private roomService: RoomService, private router: Router, private route: ActivatedRoute) {
-    this.availableRooms = null;
+    this.availableRooms = [];
   }
 
   ngOnInit(): void {
-    this.availableRooms = this.roomService.availableRooms;
+    this.availableRooms = this.roomService.availableRooms || [];
   }
 
   /**
-   * Saves selected room id that is later used to join room.
+   * Saves selected room and it's id that is later used to join room.
    * @param selectedRoom - room selected from results table.
    */
-  public saveSelectedRoomId(selectedRoom: ShortenedRoom): void {
-    this.roomService.setSelectedRoomId = selectedRoom.roomId;
+  public saveSelectedRoom(selectedRoom: ShortenedRoom): void {
+    this.roomService.setSelectedRoom = selectedRoom;
   }
 
   /**

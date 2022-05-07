@@ -38,7 +38,7 @@ export class SocketService {
    * Disconnects from the socket.io backend.
    * @protected
    */
-  protected disconnect(): void {
+  public disconnect(): void {
     this.socket.disconnect();
   }
 

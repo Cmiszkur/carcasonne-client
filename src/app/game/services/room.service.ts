@@ -29,6 +29,12 @@ export class RoomService extends SocketService {
   private selectedRoomId$: BehaviorSubject<string | null>;
 
   /**
+   * Selected room, later to be joined by player.
+   * @private
+   */
+  private selectedRoom$: BehaviorSubject<ShortenedRoom | null>;
+
+  /**
    * Room which player joined to.
    */
   private currentRoom$: BehaviorSubject<Room | null>;
@@ -39,6 +45,7 @@ export class RoomService extends SocketService {
     this.availableRooms$ = new BehaviorSubject<ShortenedRoom[] | null>(null);
     this.selectedRoomId$ = new BehaviorSubject<string | null>(null);
     this.currentRoom$ = new BehaviorSubject<Room | null>(null);
+    this.selectedRoom$ = new BehaviorSubject<ShortenedRoom | null>(null);
   }
 
   public get availableRooms(): ShortenedRoom[] | null {
@@ -47,6 +54,10 @@ export class RoomService extends SocketService {
 
   public get selectedRoomId(): string | null {
     return this.selectedRoomId$.value;
+  }
+
+  public get selectedRoom(): ShortenedRoom | null {
+    return this.selectedRoom$.value;
   }
 
   public get currentRoomValue(): Room | null {
@@ -59,6 +70,15 @@ export class RoomService extends SocketService {
 
   public set setSelectedRoomId(roomId: string) {
     this.selectedRoomId$.next(roomId);
+  }
+
+  /**
+   * Sets selected room and selected room id.
+   * @param room
+   */
+  public set setSelectedRoom(room: ShortenedRoom) {
+    this.setSelectedRoomId = room.roomId;
+    this.selectedRoom$.next(room);
   }
 
   public set setCurrentRoom(room: Room) {

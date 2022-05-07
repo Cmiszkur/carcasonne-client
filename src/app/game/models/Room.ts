@@ -6,7 +6,7 @@ export interface Room {
   board: ExtendedTile[];
   boardMoves: BoardMove[];
   gameStarted: boolean;
-  lastChosenTile: TileAndPlayer[];
+  lastChosenTile: TileAndPlayer;
   tilesLeft: Tile[];
   gameEnded: boolean;
   roomId: string;
@@ -22,7 +22,7 @@ export interface Player {
 
 export interface ExtendedTile {
   tile: Tile;
-  coordinates: Coordinates;
+  coordinates?: Coordinates;
   isFollowerPlaced: boolean;
   rotation: number;
   fallowerDetails?: FollowerDetails;

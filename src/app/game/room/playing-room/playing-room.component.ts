@@ -2,7 +2,8 @@ import { ExtendedTile } from 'src/app/game/models/Room';
 import { Component, OnInit } from '@angular/core';
 import { Room } from '../../models/Room';
 import { RoomService } from '../../services/room.service';
-import { AuthService } from "../../../user/auth.service";
+import { AuthService } from '../../../user/auth.service';
+import { Tile } from '../../models/Tile';
 
 @Component({
   selector: 'app-waiting-room',
@@ -16,12 +17,34 @@ export class PlayingRoomComponent implements OnInit {
   private newRoom: Room | null;
 
   constructor(private roomService: RoomService, private authService: AuthService) {
-    this.currentTile = null;
-    this.newRoom = null;
+    this.newRoom = this.roomService.currentRoomValue;
+    this.currentTile = PlayingRoomComponent.setCurrentTile(this.newRoom?.lastChosenTile.tile);
     this.username = this.authService.user?.username || null;
-    this.tiles = null;
+    this.tiles = this.newRoom?.board || null;
   }
 
   ngOnInit(): void {}
 
+  /**
+   * Generates current tile with defaults values.
+   * @param tile
+   * @private
+   */
+  private static generateCurrentTile(tile: Tile): ExtendedTile {
+    return {
+      tile: tile,
+      isFollowerPlaced: false,
+      rotation: 0,
+      tileValuesAfterRotation: tile.tileValues,
+    };
+  }
+
+  /**
+   * Sets current tile.
+   * @param tile
+   * @private
+   */
+  private static setCurrentTile(tile: Tile | null | undefined): ExtendedTile | null {
+    return tile ? PlayingRoomComponent.generateCurrentTile(tile) : null;
+  }
 }

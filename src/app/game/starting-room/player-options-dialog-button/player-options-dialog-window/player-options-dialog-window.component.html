@@ -1,7 +1,7 @@
 <div mat-dialog-content>
   <p>Choose color of your meeples</p>
-  <mat-radio-group class="player-options-radio-group" aria-label="Choose color of your meeples" [(ngModel)]="data.color">
-    <mat-radio-button class="player-options-radio-button" *ngFor="let color of colors" [value]="color">
+  <mat-radio-group class="player-options-radio-group" aria-label="Choose color of your meeples" [(ngModel)]="data.playerOptions.color">
+    <mat-radio-button class="player-options-radio-button" *ngFor="let color of availableColors" [value]="color">
       {{color}}
     </mat-radio-button>
   </mat-radio-group>

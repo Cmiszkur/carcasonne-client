@@ -38,5 +38,6 @@ export class RoomComponent extends BaseComponent implements OnDestroy {
   public ngOnDestroy() {
     super.ngOnDestroy();
     this.roomService.removeManyListeners('new_player_joined', 'player_left', 'game_started');
+    this.roomService.disconnect();
   }
 }
