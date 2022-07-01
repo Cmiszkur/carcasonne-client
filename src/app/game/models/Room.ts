@@ -7,7 +7,7 @@ export interface Room {
   boardMoves: BoardMove[];
   gameStarted: boolean;
   lastChosenTile: TileAndPlayer;
-  tilesLeft: Tile[];
+  tilesLeft: Tiles[];
   gameEnded: boolean;
   roomId: string;
   numberOfPlayers: number;
@@ -55,4 +55,10 @@ export enum PlayersColors {
 export interface SnackBarError {
   error: RoomError;
   errorMessage?: string;
+}
+
+export interface Tiles {
+  id: string;
+  tile: Tile;
+  numberOfTiles: number;
 }
