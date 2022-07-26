@@ -8,9 +8,7 @@ import { SnackBarError } from 'src/app/game/models/Room';
   styleUrls: ['./alert.component.sass'],
 })
 export class AlertComponent {
-  constructor(@Inject(MAT_SNACK_BAR_DATA) public data: SnackBarError, private snackBarRef: MatSnackBarRef<SnackBarError>) {
-    console.log('alert component');
-  }
+  constructor(@Inject(MAT_SNACK_BAR_DATA) public data: SnackBarError, private snackBarRef: MatSnackBarRef<SnackBarError>) {}
 
   closeDialog() {
     this.snackBarRef.dismiss();

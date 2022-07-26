@@ -1,5 +1,8 @@
+import { Position } from './Tile';
+
 export interface Pawn {
   transformValue: string;
-  direction: string[];
-  value: string;
+  direction: Position[];
+  position: string;
+  selected?: boolean;
 }

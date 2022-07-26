@@ -16,8 +16,8 @@ export interface TileEnvironments {
 export interface FollowerDetails {
   username: string;
   playerColor: string;
-  placement: TileEnvironments;
-  position: Position;
+  placement: string;
+  position: Position[];
 }
 
 export enum Position {

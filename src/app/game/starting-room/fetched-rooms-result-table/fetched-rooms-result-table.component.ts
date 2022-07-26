@@ -26,7 +26,6 @@ export class FetchedRoomsResultTableComponent implements OnChanges {
   public ngOnChanges(changes: SimpleChanges) {
     if (changes.availableRooms.currentValue) {
       if (this.availableRooms) {
-        console.log('availableRooms', this.availableRooms);
         this.dataSource = new MatTableDataSource<ShortenedRoom>(this.availableRooms);
       }
     }

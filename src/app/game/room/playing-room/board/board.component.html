@@ -12,7 +12,9 @@
             [rotation]="currentTile.rotation"
             [isCurrentTile]="true"
             [isTilePlacementConfirmed]="tilePlacementConfirmed"
-            [tileEnvironments]="currentTileEnvironments">
+            [istileAndPawnPlacementConfirmed]="tileAndPawnPlacementConfirmed"
+            [tileEnvironments]="currentTileEnvironments" 
+            (placedPawn)="placedPawn = $event">
   </app-tile>
 
   <app-empty-tiles *ngFor="let emptyTile of emptyTiles | keyvalue"
@@ -27,7 +29,13 @@
 </div>
 
 <div class="button-area">
-  <button mat-icon-button (click)="confirmChoice()">
+  <button *ngIf="tilePlacementConfirmed" 
+          mat-icon-button 
+          (click)="cancelChoice()">
+    <mat-icon>close</mat-icon>
+  </button>
+  <button mat-icon-button 
+          (click)="confirmChoice()">
     <mat-icon>done</mat-icon>
   </button>
 </div>

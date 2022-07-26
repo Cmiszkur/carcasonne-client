@@ -14,7 +14,7 @@ export class BaseComponent implements OnDestroy {
   }
 
   public get destroyed(): Observable<void> {
-    return this.destroyed$;
+    return this.destroyed$.asObservable();
   }
 
   public ngOnDestroy() {

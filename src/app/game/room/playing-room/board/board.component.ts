@@ -1,29 +1,47 @@
-import { ExtendedTile } from '../../../models/Room';
-import { Component, ElementRef, Input, OnInit } from '@angular/core';
+import { ExtendedTile, Player } from '../../../models/Room';
+import { Component, ElementRef, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { Position, TileEnvironments, TileValues } from '../../../models/Tile';
 import { KeyValue } from '@angular/common';
 import { Coordinates, Emptytile } from '../../../models/emptytile';
 import { BoardTilesService } from '../../../services/board-tiles.service';
+import { BaseComponent } from 'src/app/commons/components/base/base.component';
+import { Pawn } from 'src/app/game/models/pawn';
+import { RoomService } from 'src/app/game/services/room.service';
+import { takeUntil } from 'rxjs/operators';
+import { SocketService } from 'src/app/commons/services/socket.service';
 
 @Component({
   selector: 'app-board',
   templateUrl: './board.component.html',
   styleUrls: ['./board.component.sass'],
 })
-export class BoardComponent implements OnInit {
+export class BoardComponent extends BaseComponent implements OnInit, OnChanges, OnDestroy {
   @Input() public tiles: ExtendedTile[] | null;
   @Input() public currentTile: ExtendedTile | null;
   public emptyTiles: Map<string, Emptytile>;
   public translateValueCurrentTile: string;
+  /**
+   * Indicates confirmation of tile placement. Based on this variable possible pawn placements are determined.
+   */
   public tilePlacementConfirmed: boolean;
+  /**
+   * Indicates confirmation of tile and pawn placement. Based on this variable tile is send to the server.
+   */
+  public tileAndPawnPlacementConfirmed: boolean;
   public currentTileEnvironments: TileEnvironments;
+  public placedPawn: Pawn | null;
   private tilesCoordinates: Set<string>;
   private firstTilePosition: Coordinates;
   private previouslyClickedTileCoordinates: string;
-  private numberOfPawns: number;
   private isTilePlacedCorrectly: boolean;
 
-  constructor(private el: ElementRef, private boardTileService: BoardTilesService) {
+  constructor(
+    private el: ElementRef,
+    private boardTileService: BoardTilesService,
+    private roomService: RoomService,
+    private socketService: SocketService
+  ) {
+    super();
     this.tiles = null;
     this.currentTile = null;
     this.tilesCoordinates = new Set<string>();
@@ -31,13 +49,15 @@ export class BoardComponent implements OnInit {
     this.firstTilePosition = {} as Coordinates;
     this.translateValueCurrentTile = '';
     this.previouslyClickedTileCoordinates = '';
-    this.numberOfPawns = 6;
     this.isTilePlacedCorrectly = false;
     this.tilePlacementConfirmed = false;
+    this.tileAndPawnPlacementConfirmed = false;
     this.currentTileEnvironments = {} as TileEnvironments;
+    this.placedPawn = null;
   }
 
   ngOnInit(): void {
+    this.listenForNewTiles();
     this.initFirstTilePosition();
     this.tiles?.forEach(tile => {
       this.placeTilesFromBackendOnBoard(tile);
@@ -48,15 +68,45 @@ export class BoardComponent implements OnInit {
       : ({} as TileEnvironments);
   }
 
-  public confirmChoice(): void {
-    if (this.isTilePlacedCorrectly) {
-      this.tilePlacementConfirmed = true;
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes.tiles) {
+      this.resetConfirmation();
+      this.resetTilePlacement();
     }
   }
 
+  ngOnDestroy(): void {
+    super.ngOnDestroy();
+    this.socketService.removeListener('tile_placed_new_tile_distributed');
+  }
+
+  /**
+   * Cancel choice of tile or pawn placement.
+   */
+  public cancelChoice(): void {
+    this.tilePlacementConfirmed = false;
+  }
+
+  /**
+   * Confirms choice of tile or pawn placement.
+   */
+  public confirmChoice(): void {
+    if (this.isTilePlacedCorrectly) {
+      this.tilePlacementConfirmed ? (this.tileAndPawnPlacementConfirmed = true) : (this.tilePlacementConfirmed = true);
+    }
+    if (this.tileAndPawnPlacementConfirmed) this.sendPlacedTileToServer();
+  }
+
+  /**
+   * Handles choice of tile placement when empty space (also reffered as empty tile) is clicked.
+   * If previously clicked coordinates are the same as the current one, then current tile rotation is changed.
+   * Makes translate string that is used to position the tile in DOM, saves empty tile state and updates tile fields.
+   * @param clickedEmptyTile - contains coordinates as string and empty tile information.
+   */
   public emptyTileSelected(clickedEmptyTile: KeyValue<string, Emptytile>): void {
     if (!this.tilePlacementConfirmed) {
-      if (this.previouslyClickedTileCoordinates === clickedEmptyTile.key) {
+      const stringifiedTileCoordinates: string = clickedEmptyTile.key;
+      if (this.previouslyClickedTileCoordinates === stringifiedTileCoordinates) {
         if (this.currentTile) {
           this.currentTile.rotation >= 270 ? (this.currentTile.rotation = 0) : (this.currentTile.rotation += 90);
           this.currentTileEnvironments = this.tileValuesToTileEnvironments(
@@ -66,17 +116,11 @@ export class BoardComponent implements OnInit {
         }
       }
 
-      this.previouslyClickedTileCoordinates = clickedEmptyTile.key;
-      const coordinates = JSON.parse(clickedEmptyTile.key) as Coordinates;
-
-      this.translateValueCurrentTile = this.makeTranslateString(coordinates);
-
+      const coordinates = JSON.parse(stringifiedTileCoordinates) as Coordinates;
       const isTilePlacedCorrectly = this.checkCurrentTilePlacement(clickedEmptyTile.value);
-      this.isTilePlacedCorrectly = isTilePlacedCorrectly;
 
-      this.boardTileService.changeClickedEmptyTileState([clickedEmptyTile.key, isTilePlacedCorrectly]);
-    } else {
-      console.log('tu będzie stawiania pionka');
+      if (this.currentTile) this.currentTile.coordinates = coordinates;
+      this.setTilePlacementRelatedFields(coordinates, isTilePlacedCorrectly, stringifiedTileCoordinates);
     }
   }
 
@@ -91,6 +135,22 @@ export class BoardComponent implements OnInit {
     } else {
       return this.makeTranslateString(tile.coordinates);
     }
+  }
+
+  /**
+   * Sends placed tile extended format with placed pawn.
+   */
+  public sendPlacedTileToServer(): void {
+    const loggedPlayer: Player | null = this.roomService.playersValue?.loggedPlayer || null;
+    if (!this.currentTile || !loggedPlayer || !this.placedPawn) return;
+    this.currentTile.isFollowerPlaced = true;
+    this.currentTile.fallowerDetails = {
+      placement: this.placedPawn.position,
+      position: this.placedPawn.direction,
+      playerColor: loggedPlayer.color,
+      username: loggedPlayer.username,
+    };
+    this.roomService.placeTile(this.currentTile);
   }
 
   public placeEmptyTileInMap(tileValues: TileValues, tileRotation: number, coordinates?: { x: number; y: number }) {
@@ -131,6 +191,39 @@ export class BoardComponent implements OnInit {
         this.emptyTiles.delete(coordinates);
       });
     });
+  }
+
+  /**
+   * Resets tile placement by reverting some fields to default state.
+   */
+  private resetTilePlacement(): void {
+    this.setTilePlacementRelatedFields();
+  }
+
+  /**
+   * Sets fields responsible for the tile placement.
+   * When coordinates are not passed, method reverts fields value to default state set in constructor.
+   * @param coordinates
+   * @param isTilePlacedCorrectly
+   * @param stringifiedCoordinates
+   */
+  private setTilePlacementRelatedFields(
+    coordinates?: Coordinates,
+    isTilePlacedCorrectly: boolean = false,
+    stringifiedCoordinates: string = JSON.stringify(coordinates)
+  ): void {
+    this.previouslyClickedTileCoordinates = coordinates ? stringifiedCoordinates : '';
+    this.translateValueCurrentTile = coordinates ? this.makeTranslateString(coordinates) : '';
+    this.isTilePlacedCorrectly = isTilePlacedCorrectly;
+    this.boardTileService.changeClickedEmptyTileState(coordinates ? [stringifiedCoordinates, isTilePlacedCorrectly] : null);
+  }
+
+  /**
+   * Resets confirmations of tiles and pawns.
+   */
+  private resetConfirmation(): void {
+    this.cancelChoice();
+    this.tileAndPawnPlacementConfirmed = false;
   }
 
   private initFirstTilePosition(): void {
@@ -189,7 +282,7 @@ export class BoardComponent implements OnInit {
       return tileEnvironmentsKeysArray;
     };
 
-    for (const [key, value] of Object.entries(tileValues)) {
+    for (const [key, value] of Object.entries(tileValues || {})) {
       value.forEach((array: Position[]) =>
         array.forEach(string => {
           switch (string) {
@@ -221,5 +314,9 @@ export class BoardComponent implements OnInit {
     } else {
       return '';
     }
+  }
+
+  private listenForNewTiles(): void {
+    this.roomService.receiveTilePlacedResponse().pipe(takeUntil(this.destroyed)).subscribe();
   }
 }

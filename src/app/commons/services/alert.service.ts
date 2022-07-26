@@ -10,7 +10,6 @@ export class AlertService {
   constructor(private _snackBar: MatSnackBar) {}
 
   openNewAlert(error: RoomError, errorMessage?: string) {
-    console.log('new alert', error, errorMessage);
     this._snackBar.openFromComponent(AlertComponent, {
       data: { error, errorMessage },
       verticalPosition: 'top',

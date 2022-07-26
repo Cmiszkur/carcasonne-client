@@ -1,4 +1,4 @@
-import { Player, PlayersColors, Room, ShortenedRoom } from '../models/Room';
+import { ExtendedTile, Player, PlayersColors, Room, ShortenedRoom } from '../models/Room';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -7,7 +7,8 @@ import { tap } from 'rxjs/operators';
 import { CreateRoomPayload, JoinRoomPayload, RoomError, SocketAnswer, StartGamePayload } from '../models/socket';
 import { CustomError } from 'src/app/commons/customErrorHandler';
 import { SocketService } from '../../commons/services/socket.service';
-import { C } from '@angular/cdk/keycodes';
+import { AuthService } from 'src/app/user/auth.service';
+import { Players } from '../models/Players';
 
 @Injectable({
   providedIn: 'root',
@@ -39,13 +40,19 @@ export class RoomService extends SocketService {
    */
   private currentRoom$: BehaviorSubject<Room | null>;
 
-  constructor(private http: HttpClient) {
+  /**
+   * Holds logged in player and rest of the players.
+   */
+  private players$: BehaviorSubject<Players | null>;
+
+  constructor(private http: HttpClient, private authService: AuthService) {
     super();
     this.baseUrl = 'http://localhost:3000';
     this.availableRooms$ = new BehaviorSubject<ShortenedRoom[] | null>(null);
     this.selectedRoomId$ = new BehaviorSubject<string | null>(null);
     this.currentRoom$ = new BehaviorSubject<Room | null>(null);
     this.selectedRoom$ = new BehaviorSubject<ShortenedRoom | null>(null);
+    this.players$ = new BehaviorSubject<Players | null>(null);
   }
 
   public get availableRooms(): ShortenedRoom[] | null {
@@ -68,7 +75,19 @@ export class RoomService extends SocketService {
     return this.currentRoom$.asObservable();
   }
 
-  public set setSelectedRoomId(roomId: string) {
+  public get players(): Observable<Players | null> {
+    return this.players$.asObservable();
+  }
+
+  public get playersValue(): Players | null {
+    return this.players$.value;
+  }
+
+  public setPlayers(players: Players | null): void {
+    this.players$.next(players);
+  }
+
+  public setSelectedRoomId(roomId: string) {
     this.selectedRoomId$.next(roomId);
   }
 
@@ -77,11 +96,13 @@ export class RoomService extends SocketService {
    * @param room
    */
   public set setSelectedRoom(room: ShortenedRoom) {
-    this.setSelectedRoomId = room.roomId;
+    this.setSelectedRoomId(room.roomId);
     this.selectedRoom$.next(room);
   }
 
   public set setCurrentRoom(room: Room) {
+    const players: Player[] = room.players;
+    this.setPlayers({ loggedPlayer: this.findPlayer(players), otherPlayers: this.getRestOfThePlayers(players) });
     this.currentRoom$.next(room);
   }
 
@@ -98,10 +119,6 @@ export class RoomService extends SocketService {
   public getRooms(): Observable<ShortenedRoom[]> {
     const getRoomsUrl = `${Constants.baseUrl}room/get-rooms`;
     return this.http.get<ShortenedRoom[]>(getRoomsUrl, Constants.httpOptions).pipe(tap(rooms => this.availableRooms$.next(rooms)));
-  }
-
-  public currentRoomAsObservable(): Observable<Room | null> {
-    return this.currentRoom$.asObservable();
   }
 
   /**
@@ -151,6 +168,10 @@ export class RoomService extends SocketService {
     this.socket.emit('start_game', startGamePayload);
   }
 
+  public placeTile(tile: ExtendedTile): void {
+    this.socket.emit('tile_placed', { roomID: this.currentRoomValue?.roomId, extendedTile: tile });
+  }
+
   /**
    * Listens for ``joined_room`` response from socket.io backend.
    * If room is returned it's being set as current room.
@@ -187,6 +208,16 @@ export class RoomService extends SocketService {
   }
 
   /**
+   * Listens for ``tile_placed_new_tile_distributed`` response from socket.io backend.
+   * Updates current room with returned new tiles.
+   * @returns
+   */
+  public receiveTilePlacedResponse(): Observable<SocketAnswer> {
+    this.connect();
+    return this.fromEvent<SocketAnswer>('tile_placed_new_tile_distributed').pipe(tap(socketAnswer => this.updateRoom(socketAnswer)));
+  }
+
+  /**
    * Listens for ``game_started`` response from socket.io backend.
    * If room is returned it's being set as current room.
    */
@@ -215,5 +246,26 @@ export class RoomService extends SocketService {
   private updateRoom(socketAnswer: SocketAnswer): void {
     const room: Room | null = socketAnswer.answer?.room || null;
     if (room) this.setCurrentRoom = room;
+  }
+
+  /**
+   * Finds player that corresponds to username of logged in user.
+   * @private
+   */
+  private findPlayer(players: Player[]): Player | null {
+    return players.find(player => player.username === this.authService.user?.username) || null;
+  }
+
+  /**
+   * Returns all players but the one logged in.
+   * @param players
+   * @private
+   */
+  private getRestOfThePlayers(_players: Player[]): Player[] {
+    const players: Player[] = Constants.copy<Player[]>(_players);
+    players.forEach((player, index, array) => {
+      if (player.username === this.authService.user?.username) delete array[index];
+    });
+    return players;
   }
 }

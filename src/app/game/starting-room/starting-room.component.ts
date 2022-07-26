@@ -57,7 +57,6 @@ export class StartingRoomComponent implements OnInit {
    */
   private navigateToWaitingRoom(roomID: string | null, options: PlayerOptions): void {
     if (!roomID) return;
-    console.log('navigating to waiting room...');
     this.router.navigate(['./room/waiting-room'], {
       queryParams: { roomID: roomID, ...options },
       relativeTo: this.route,

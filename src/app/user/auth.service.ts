@@ -39,7 +39,6 @@ export class AuthService {
           return true;
         },
         e => {
-          console.log(e);
           return false;
         }
       );
@@ -58,7 +57,6 @@ export class AuthService {
   private set saveUser(user: UserResponse) {
     this.user$.next(user);
   }
-
 
   private handleError<T>() {
     return (error: HttpErrorResponse): Observable<T> => {

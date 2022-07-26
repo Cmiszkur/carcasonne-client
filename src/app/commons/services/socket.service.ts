@@ -59,8 +59,10 @@ export class SocketService {
   protected fromEvent<T>(eventName: string): Observable<T> {
     return new Observable(subscriber => {
       this.socket.on(eventName, response => {
-        console.log('Im in a subscriber', response);
-        subscriber.next(response);
+        if (!subscriber.closed) {
+          console.log('Im in a subscriber ', eventName, response);
+          subscriber.next(response);
+        }
       });
     });
   }

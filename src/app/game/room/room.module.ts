@@ -11,6 +11,7 @@ import { EmptyTileClickDirective } from "./playing-room/directives/empty-tile-cl
 import { CommonsModule } from "../../commons/commons.module";
 import { WaitingRoomComponent } from './waiting-room/waiting-room.component';
 import { PlayerSectionComponent } from './dashboard/player-section/player-section.component';
+import { PawnComponent } from './playing-room/board/tile/pawn/pawn.component';
 
 
 @NgModule({
@@ -24,6 +25,7 @@ import { PlayerSectionComponent } from './dashboard/player-section/player-sectio
     EmptyTileClickDirective,
     WaitingRoomComponent,
     PlayerSectionComponent,
+    PawnComponent,
   ],
   imports: [
     CommonModule,

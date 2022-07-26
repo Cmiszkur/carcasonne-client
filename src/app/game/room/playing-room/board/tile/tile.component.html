@@ -8,15 +8,18 @@
     [alt]="extendedTile.tile.tileName"
     [style.transform]="makeRotateTransformString(rotation)">
 
-  <mat-icon *ngIf="isCurrentTile">rotate_right</mat-icon>
+  <mat-icon class="rotate_icon" *ngIf="isCurrentTile">rotate_right</mat-icon>
 
   <ng-container *ngIf="isTilePlacementConfirmed">
-    <mat-icon *ngFor="let pawn of pawns"
-              [style.fill]="'#5c5c5c'"
-              [style.transform]="pawn.transformValue"
-              svgIcon="follower"
-              aria-hidden="false">
-    </mat-icon>
+    <button mat-icon-button 
+            *ngFor="let pawn of pawns" 
+            [style.transform]="pawn.transformValue" 
+            (click)="placePawn(pawn)">
+      <mat-icon [style.fill]="!pawn.selected ? '#5c5c5c' : loggedPlayerColor"
+                svgIcon="follower"
+                aria-hidden="false">
+      </mat-icon>
+    </button>
   </ng-container>
 
 </div>
