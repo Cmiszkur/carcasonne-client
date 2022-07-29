@@ -6,6 +6,7 @@ import { Pawn } from '../../../../models/pawn';
 import { ExtendedTile } from 'src/app/game/models/Room';
 import { BaseComponent } from 'src/app/commons/components/base/base.component';
 import { RoomService } from 'src/app/game/services/room.service';
+import { Environment } from 'src/app/game/models/emptytile';
 
 const follower = require('!!raw-loader?!../../../../../../assets/SVG/follower.svg');
 
@@ -103,60 +104,70 @@ export class TileComponent extends BaseComponent implements OnChanges, OnInit {
   private fillPossiblePawnPlacements(): Pawn[] {
     const possiblePawnPlacements: Pawn[] = [];
 
-    if (this.extendedTile && this.extendedTile.tile.tileValues) {
-      const tileValues: Tile['tileValues'] = JSON.parse(JSON.stringify(this.extendedTile.tile.tileValues));
-      const shiftValue = this.rotation >= 360 ? 0 : this.rotation / 90;
-      const environmentValues: Position[] = [Position.TOP, Position.RIGHT, Position.BOTTOM, Position.LEFT];
-
-      for (const [key, value] of Object.entries(tileValues)) {
-        value.forEach((values: Position[]) => {
-          values.forEach((environmentValue, environmentIndex) => {
-            const environmentValuesIndex = environmentValues.indexOf(environmentValue);
-            const environmentValuesIndexWithRotation = (environmentValuesIndex + shiftValue) % 4;
-            values[environmentIndex] = environmentValues[environmentValuesIndexWithRotation];
-          });
-
-          if (values.length >= 2) {
-            possiblePawnPlacements.push({
-              transformValue: 'translate(32px, 32px)',
-              position: key,
-              direction: values,
-            });
-          }
-
-          if (values.length === 1) {
-            switch (values[0]) {
-              case 'TOP':
-                possiblePawnPlacements.push({
-                  transformValue: 'translate(32px, 0)',
-                  position: key,
-                  direction: [Position.TOP],
-                });
-                break;
-              case 'RIGHT':
-                possiblePawnPlacements.push({
-                  transformValue: 'translate(70px, 32px)',
-                  position: key,
-                  direction: [Position.RIGHT],
-                });
-                break;
-              case 'BOTTOM':
-                possiblePawnPlacements.push({
-                  transformValue: 'translate(32px, 70px)',
-                  position: key,
-                  direction: [Position.BOTTOM],
-                });
-                break;
-              case 'LEFT':
-                possiblePawnPlacements.push({
-                  transformValue: 'translate(0, 32px)',
-                  position: key,
-                  direction: [Position.LEFT],
-                });
-                break;
-            }
-          }
+    if (this.extendedTile) {
+      if (this.extendedTile.tile.hasChurch) {
+        possiblePawnPlacements.push({
+          transformValue: 'translate(32px, 32px)',
+          placement: Environment.CHURCH,
+          position: [],
         });
+      }
+
+      if (this.extendedTile.tile.tileValues) {
+        const tileValues: Tile['tileValues'] = JSON.parse(JSON.stringify(this.extendedTile.tile.tileValues));
+        const shiftValue = this.rotation >= 360 ? 0 : this.rotation / 90;
+        const environmentValues: Position[] = [Position.TOP, Position.RIGHT, Position.BOTTOM, Position.LEFT];
+
+        for (const [key, value] of Object.entries(tileValues)) {
+          value.forEach((values: Position[]) => {
+            values.forEach((environmentValue, environmentIndex) => {
+              const environmentValuesIndex = environmentValues.indexOf(environmentValue);
+              const environmentValuesIndexWithRotation = (environmentValuesIndex + shiftValue) % 4;
+              values[environmentIndex] = environmentValues[environmentValuesIndexWithRotation];
+            });
+
+            if (values.length >= 2) {
+              possiblePawnPlacements.push({
+                transformValue: 'translate(32px, 32px)',
+                placement: key,
+                position: values,
+              });
+            }
+
+            if (values.length === 1) {
+              switch (values[0]) {
+                case 'TOP':
+                  possiblePawnPlacements.push({
+                    transformValue: 'translate(32px, 0)',
+                    placement: key,
+                    position: [Position.TOP],
+                  });
+                  break;
+                case 'RIGHT':
+                  possiblePawnPlacements.push({
+                    transformValue: 'translate(70px, 32px)',
+                    placement: key,
+                    position: [Position.RIGHT],
+                  });
+                  break;
+                case 'BOTTOM':
+                  possiblePawnPlacements.push({
+                    transformValue: 'translate(32px, 70px)',
+                    placement: key,
+                    position: [Position.BOTTOM],
+                  });
+                  break;
+                case 'LEFT':
+                  possiblePawnPlacements.push({
+                    transformValue: 'translate(0, 32px)',
+                    placement: key,
+                    position: [Position.LEFT],
+                  });
+                  break;
+              }
+            }
+          });
+        }
       }
     }
     return possiblePawnPlacements;

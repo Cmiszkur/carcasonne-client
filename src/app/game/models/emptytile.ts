@@ -1,18 +1,19 @@
-export enum environment {
-  ROAD = 'road',
-  TOWN = 'town',
-  FIELD = 'field'
+export enum Environment {
+  ROADS = 'roads',
+  CITIES = 'cities',
+  FIELD = 'field',
+  CHURCH = 'church',
 }
 
 export interface Coordinates {
-  x: number,
-  y: number,
+  x: number;
+  y: number;
 }
 
 export interface Emptytile {
-  top?: environment,
-  right?: environment,
-  bottom?: environment,
-  left?: environment,
-  position: string
+  top?: Environment;
+  right?: Environment;
+  bottom?: Environment;
+  left?: Environment;
+  position: string;
 }

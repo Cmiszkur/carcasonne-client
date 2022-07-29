@@ -145,8 +145,8 @@ export class BoardComponent extends BaseComponent implements OnInit, OnChanges, 
     if (!this.currentTile || !loggedPlayer || !this.placedPawn) return;
     this.currentTile.isFollowerPlaced = true;
     this.currentTile.fallowerDetails = {
-      placement: this.placedPawn.position,
-      position: this.placedPawn.direction,
+      placement: this.placedPawn.placement,
+      position: this.placedPawn.position,
       playerColor: loggedPlayer.color,
       username: loggedPlayer.username,
     };

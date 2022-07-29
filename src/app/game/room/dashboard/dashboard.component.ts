@@ -3,9 +3,6 @@ import { MatIconRegistry } from '@angular/material/icon';
 import { DomSanitizer } from '@angular/platform-browser';
 import { Player } from '../../models/Room';
 import { RoomService } from '../../services/room.service';
-import { AuthService } from '../../../user/auth.service';
-import { UserResponse } from '../../../interfaces/responseInterfaces';
-import { Constants } from '../../../constants/httpOptions';
 
 const follower = require('!!raw-loader?!../../../../assets/SVG/follower.svg');
 
