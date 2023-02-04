@@ -1,7 +1,7 @@
 export interface Tile {
   _id: string;
   tileName: string;
-  tileValues: TileValues;
+  tileValues: TileValues | null;
   extraPoints: boolean;
   hasChurch: boolean;
 }

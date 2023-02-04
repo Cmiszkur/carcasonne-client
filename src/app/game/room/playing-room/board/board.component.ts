@@ -64,7 +64,7 @@ export class BoardComponent extends BaseComponent implements OnInit, OnChanges, 
       this.placeTilesFromBackendOnBoard(tile);
       this.placeEmptyTileInMap(tile.tile.tileValues, tile.rotation, tile.coordinates);
     });
-    this.currentTileEnvironments = this.currentTile
+    this.currentTileEnvironments = this.currentTile?.tile.tileValues
       ? this.tileValuesToTileEnvironments(this.currentTile.tile.tileValues, this.currentTile.rotation)
       : ({} as TileEnvironments);
   }
@@ -161,7 +161,7 @@ export class BoardComponent extends BaseComponent implements OnInit, OnChanges, 
     this.roomService.placeTile(this.currentTile);
   }
 
-  public placeEmptyTileInMap(tileValues: TileValues, tileRotation: number, coordinates?: { x: number; y: number }) {
+  public placeEmptyTileInMap(tileValues: TileValues | null, tileRotation: number, coordinates?: { x: number; y: number }): void {
     this.tiles?.forEach(() => {
       if (!coordinates) coordinates = { x: 0, y: 0 };
 
@@ -270,7 +270,7 @@ export class BoardComponent extends BaseComponent implements OnInit, OnChanges, 
     }
   }
 
-  private tileValuesToTileEnvironments(tileValues: TileValues, tileRotation: number): TileEnvironments {
+  private tileValuesToTileEnvironments(tileValues: TileValues | null, tileRotation: number): TileEnvironments {
     const tileEnvironments: TileEnvironments = {
       top: 'fields',
       right: 'fields',

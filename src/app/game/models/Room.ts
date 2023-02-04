@@ -26,7 +26,7 @@ export interface ExtendedTile {
   isFollowerPlaced: boolean;
   rotation: number;
   fallowerDetails?: FollowerDetails;
-  tileValuesAfterRotation: TileValues;
+  tileValuesAfterRotation: TileValues | null;
 }
 
 export interface TileAndPlayer {

@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
-import { Position, Tile, TileEnvironments } from '../../../../models/Tile';
+import { Position, Tile, TileEnvironments, TileValues } from '../../../../models/Tile';
 import { MatIconRegistry } from '@angular/material/icon';
 import { DomSanitizer } from '@angular/platform-browser';
 import { Pawn } from '../../../../models/pawn';
@@ -113,8 +113,11 @@ export class TileComponent extends BaseComponent implements OnChanges, OnInit {
         });
       }
 
-      if (this.extendedTile.tile.tileValues) {
-        const tileValues: Tile['tileValues'] = JSON.parse(JSON.stringify(this.extendedTile.tile.tileValues));
+      const tileValues: TileValues | null = this.extendedTile.tile.tileValues
+        ? JSON.parse(JSON.stringify(this.extendedTile.tile.tileValues))
+        : null;
+
+      if (tileValues?.roads || tileValues?.cities) {
         const shiftValue = this.rotation >= 360 ? 0 : this.rotation / 90;
         const environmentValues: Position[] = [Position.TOP, Position.RIGHT, Position.BOTTOM, Position.LEFT];
 
