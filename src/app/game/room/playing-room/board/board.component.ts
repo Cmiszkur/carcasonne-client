@@ -53,7 +53,7 @@ export class BoardComponent extends BaseComponent implements OnInit, OnChanges, 
     this.isTilePlacedCorrectly = false;
     this.tilePlacementConfirmed = false;
     this.tileAndPawnPlacementConfirmed = false;
-    this.currentTileEnvironments = {} as TileEnvironments;
+    this.currentTileEnvironments = this.getDefaultTileEnvironments();
     this.placedPawn = null;
   }
 
@@ -66,7 +66,7 @@ export class BoardComponent extends BaseComponent implements OnInit, OnChanges, 
     });
     this.currentTileEnvironments = this.currentTile?.tile.tileValues
       ? this.tileValuesToTileEnvironments(this.currentTile.tile.tileValues, this.currentTile.rotation)
-      : ({} as TileEnvironments);
+      : this.getDefaultTileEnvironments();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -97,7 +97,6 @@ export class BoardComponent extends BaseComponent implements OnInit, OnChanges, 
     this.tileAndPawnPlacementConfirmed = data.tilePlaced && !!data.pawnPlaced;
     console.log(data);
     if (this.tileAndPawnPlacementConfirmed || (this.tilePlacementConfirmed && data.pawnPlaced === false)) {
-      console.log('wpadło');
       this.sendPlacedTileToServer();
     }
   }
@@ -271,12 +270,7 @@ export class BoardComponent extends BaseComponent implements OnInit, OnChanges, 
   }
 
   private tileValuesToTileEnvironments(tileValues: TileValues | null, tileRotation: number): TileEnvironments {
-    const tileEnvironments: TileEnvironments = {
-      top: 'fields',
-      right: 'fields',
-      bottom: 'fields',
-      left: 'fields',
-    };
+    const tileEnvironments: TileEnvironments = this.getDefaultTileEnvironments();
 
     const tileEnvironmentsKeys = () => {
       const shiftValue = tileRotation >= 360 ? 0 : tileRotation / 90;
@@ -312,6 +306,15 @@ export class BoardComponent extends BaseComponent implements OnInit, OnChanges, 
     }
 
     return tileEnvironments;
+  }
+
+  private getDefaultTileEnvironments(): TileEnvironments {
+    return {
+      top: 'fields',
+      right: 'fields',
+      bottom: 'fields',
+      left: 'fields',
+    };
   }
 
   private makeTranslateString(coordinates: Coordinates): string {
