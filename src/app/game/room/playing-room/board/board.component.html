@@ -34,10 +34,11 @@
           (click)="cancelChoice()">
     <mat-icon>close</mat-icon>
   </button>
-  <button mat-icon-button 
-          (click)="confirmChoice()">
-    <mat-icon>done</mat-icon>
-  </button>
+  <app-tile-and-pawn-confirmation-button  [isTilePlacedCorrectly]="isTilePlacedCorrectly" 
+                                          [pawnPlaced]="!!placedPawn"
+                                          [tilePlacementConfirmed]="tilePlacementConfirmed" 
+                                          (confirmation)="confirmChoice($event)">
+  </app-tile-and-pawn-confirmation-button>
 </div>
 
 

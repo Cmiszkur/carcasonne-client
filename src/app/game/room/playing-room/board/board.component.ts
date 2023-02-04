@@ -9,6 +9,7 @@ import { Pawn } from 'src/app/game/models/pawn';
 import { RoomService } from 'src/app/game/services/room.service';
 import { takeUntil } from 'rxjs/operators';
 import { SocketService } from 'src/app/commons/services/socket.service';
+import { ConfirmationButtonData } from 'src/app/game/models/confirmationButtonData';
 
 @Component({
   selector: 'app-board',
@@ -30,10 +31,10 @@ export class BoardComponent extends BaseComponent implements OnInit, OnChanges, 
   public tileAndPawnPlacementConfirmed: boolean;
   public currentTileEnvironments: TileEnvironments;
   public placedPawn: Pawn | null;
+  public isTilePlacedCorrectly: boolean;
   private tilesCoordinates: Set<string>;
   private firstTilePosition: Coordinates;
   private previouslyClickedTileCoordinates: string;
-  private isTilePlacedCorrectly: boolean;
 
   constructor(
     private el: ElementRef,
@@ -88,13 +89,17 @@ export class BoardComponent extends BaseComponent implements OnInit, OnChanges, 
   }
 
   /**
-   * Confirms choice of tile or pawn placement.
+   * Confirms choice of tile or pawn placement. When `data.pawnPlaced` is returned as undefined it means that the player
+   * didn't make a choice regarding pawn placement, therefore the app shouldn't send tile to backend.
    */
-  public confirmChoice(): void {
-    if (this.isTilePlacedCorrectly) {
-      this.tilePlacementConfirmed ? (this.tileAndPawnPlacementConfirmed = true) : (this.tilePlacementConfirmed = true);
+  public confirmChoice(data: ConfirmationButtonData): void {
+    this.tilePlacementConfirmed = data.tilePlaced;
+    this.tileAndPawnPlacementConfirmed = data.tilePlaced && !!data.pawnPlaced;
+    console.log(data);
+    if (this.tileAndPawnPlacementConfirmed || (this.tilePlacementConfirmed && data.pawnPlaced === false)) {
+      console.log('wpadło');
+      this.sendPlacedTileToServer();
     }
-    if (this.tileAndPawnPlacementConfirmed) this.sendPlacedTileToServer();
   }
 
   /**
@@ -142,14 +147,17 @@ export class BoardComponent extends BaseComponent implements OnInit, OnChanges, 
    */
   public sendPlacedTileToServer(): void {
     const loggedPlayer: Player | null = this.roomService.playersValue?.loggedPlayer || null;
-    if (!this.currentTile || !loggedPlayer || !this.placedPawn) return;
-    this.currentTile.isFollowerPlaced = true;
-    this.currentTile.fallowerDetails = {
-      placement: this.placedPawn.placement,
-      position: this.placedPawn.position,
-      playerColor: loggedPlayer.color,
-      username: loggedPlayer.username,
-    };
+    if (!this.currentTile || !loggedPlayer) return;
+    this.currentTile.isFollowerPlaced = this.tileAndPawnPlacementConfirmed && !!this.placedPawn;
+    this.currentTile.fallowerDetails =
+      this.tileAndPawnPlacementConfirmed && !!this.placedPawn
+        ? {
+            placement: this.placedPawn.placement,
+            position: this.placedPawn.position,
+            playerColor: loggedPlayer.color,
+            username: loggedPlayer.username,
+          }
+        : undefined;
     this.roomService.placeTile(this.currentTile);
   }
 
