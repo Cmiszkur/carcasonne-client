@@ -18,6 +18,8 @@ export interface Player {
   username: string;
   color: string;
   followers: number;
+  points: number;
+  state: string;
 }
 
 export interface ExtendedTile {
